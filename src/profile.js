@@ -1,6 +1,3 @@
-// this is profile.js which contains all user profile 
-// information except passwords which is in auth.js
-
 const profile = {
         headline: 'This is my headline!',
         email: 'foo@bar.com',
@@ -10,22 +7,25 @@ const profile = {
 
 const getHeadlines = (req, res) => {
 
-    // we will want middleware to supply this value
-    // for now we provide a default
-    if (!req.user) req.user = 'Scott'
-    const users = req.params.users ? req.params.users.split(',') : [req.user]
+    // // we will want middleware to supply this value
+    // // for now we provide a default
+    // if (!req.user) req.user = 'Scott'
+    // const users = req.params.users ? req.params.users.split(',') : [req.user]
 
-    // this returns only one headline, but we want to send
-    // an array of all the requested user's headlines
-    res.send({ headlines: [ 
-        { username: users[0], headline: headlines[users[0]] } 
-    ] })
+    // // this returns only one headline, but we want to send
+    // // an array of all the requested user's headlines
+    // res.send({ headlines: [ 
+    //     { username: users[0], headline: headlines[users[0]] } 
+    // ] })
 
-    // Implement the logic to return headlines for all requested users
-    // each user has a default value.  Only the "req.user" value ever changes.
+    // // Implement the logic to return headlines for all requested users
+    // // each user has a default value.  Only the "req.user" value ever changes.
+
+    res.send({ hello: 'world' })
 }
 
 const updateHeadline = (req, res) => {
+    console.log("headlines")
   res.send({ hello: 'world' })
 }
 
