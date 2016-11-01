@@ -5,7 +5,7 @@ const logger = require('morgan')
 const app = express()
 app.use(bodyParser.json())
 
-require('src/profile')(app)
+require('./src/profile')(app)
 
 // Get the port from the environment, i.e., Heroku sets it
 const port = process.env.PORT || 3000
