@@ -1,5 +1,5 @@
 const articles = [ {id: 0, text: 'test1' }, {id: 1, text: 'test2' }, {id: 3, text: 'test3' } ]
-let nextID = 4
+var nextID = 4
  
 const postArticle = (req, res) => {
   const newArticle = {
