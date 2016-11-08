@@ -1,16 +1,16 @@
-const profile = {
+const profiles = [ {
         username: 'FooBar',
         headline: 'This is my headline!',
         email: 'foo@bar.com',
         zipcode: 12345,
-        avatar: 'https://upload.wikimedia.org/wikipedia/en/thumb/4/4e/DWLeebron.jpg/220px-DWLeebron.jpg',
-    }
+        avatar: 'https://upload.wikimedia.org/wikipedia/en/thumb/4/4e/DWLeebron.jpg/220px-DWLeebron.jpg'
+} ]
 
 const getHeadlines = (req, res) => {
 
     // we will want middleware to supply this value
     // for now we provide a default
-    if (!req.user) req.user = profile.username
+    if (!req.user) req.user = profile[0].username
     const users = req.params.users ? req.params.users.split(',') : [req.user]
 
     // this returns only one headline, but we want to send
@@ -22,29 +22,29 @@ const getHeadlines = (req, res) => {
     // Implement the logic to return headlines for all requested users
     // each user has a default value.  Only the "req.user" value ever changes.
 
-    if (profile.username === users) { //how to check for multiple profiles??
-     res.send({ headlines: [ { username: req.user, headline: profile.headline } ] })
+    if (profile[0].username === users) { //how to check for multiple profiles??
+     res.send({ headlines: [ { username: req.user, headline: profile[0].headline } ] })
      return
     }
 
-    res.send({ headlines: [ { username: req.user, headline: profile.headline } ] })
+    res.send({ headlines: [ { username: req.user, headline: profile[0].headline } ] })
 }
 
 const updateHeadline = (req, res) => {
-  profile.headline = req.body.headline
-  res.send({ headlines: [ { username: profile.username, headline: profile.headline } ] })
+  profile[0].headline = req.body.headline
+  res.send({ headlines: [ { username: profile[0].username, headline: profile[0].headline } ] })
 }
 
 const getEmail = (req, res) => {
     if (!req.user) req.user = 'Scott'
     const users = req.params.users ? req.params.users.split(',') : [req.user]
 
-  res.send( { email: profile.email } )
+  res.send( { email: profile[0].email } )
 }
 
 const updateEmail = (req, res) => {
-  profile.email = req.body.email
-  res.send( { email: profile.email } )
+  profile[0].email = req.body.email
+  res.send( { email: profile[0].email } )
 }
 
 const getDOB = (req, res) => {
@@ -52,21 +52,21 @@ const getDOB = (req, res) => {
 }
 
 const getZipcode = (req, res) => {
-  res.send({ zipcode: profile.zipcode })
+  res.send({ zipcode: profile[0].zipcode })
 }
 
 const updateZipcode = (req, res) => {
-  profile.zipcode = req.body.zipcode
-  res.send( { zipcode: profile.zipcode } )
+  profile[0].zipcode = req.body.zipcode
+  res.send( { zipcode: profile[0].zipcode } )
 }
 
 const getAvatars = (req, res) => {
-  res.send({ avatar: profile.avatar })
+  res.send({ avatar: profile[0].avatar })
 }
 
 const updateAvatars = (req, res) => {
-  profile.avatar = req.body.avatar
-  res.send({ avatar: profile.avatar })
+  profile[0].avatar = req.body.avatar
+  res.send({ avatar: profile[0].avatar })
 }
 
 module.exports = (app) => {
