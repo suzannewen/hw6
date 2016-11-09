@@ -1,4 +1,4 @@
 { 
      "netid": "yw25",
-     "frontend": "http://awesome-jelly.surge.sh"
+     "frontend": "http://suz-ricebook.surge.sh"
 }

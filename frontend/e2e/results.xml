@@ -1,0 +1,8 @@
+<testsuite name="Mocha Tests" tests="6" failures="0" errors="0" skipped="0" timestamp="Wed, 09 Nov 2016 07:43:15 GMT" time="14.121">
+<testcase classname="Rice Book E2E Testing" name="should log in as the test user" time="1.044"/>
+<testcase classname="Rice Book E2E Testing" name="should upload a new post and verify that the article appears" time="0.283"/>
+<testcase classname="Rice Book E2E Testing" name="should update the status headline and verify the change" time="1.247"/>
+<testcase classname="Rice Book E2E Testing" name="should navigate to the profile view, Update the user's email and verify" time="4.249"/>
+<testcase classname="Rice Book E2E Testing" name="should update the user's zipcode and verify" time="1.137"/>
+<testcase classname="shutdown" name="now" time="0.114"/>
+</testsuite>

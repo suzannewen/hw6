@@ -19,6 +19,3 @@ exports.logout = () =>
     sleep(500)
     .then(findId('logout').click())
     .then(sleep(2000))
-    // .then(findId('message').getText()
-    //     .then(text => {
-    //         expect(text).to.equal('You have logged out') }))

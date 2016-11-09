@@ -8,19 +8,8 @@ const profiles = [ {
 
 const getHeadlines = (req, res) => {
 
-    // we will want middleware to supply this value
-    // for now we provide a default
     if (!req.user) req.user = profiles[0].username
     const users = req.params.users ? req.params.users.split(',') : [req.user]
-
-    // this returns only one headline, but we want to send
-    // an array of all the requested user's headlines
-    // res.send({ headlines: [ 
-    //     { username: users[0], headline: headlines[users[0]] } 
-    // ] })
-
-    // Implement the logic to return headlines for all requested users
-    // each user has a default value.  Only the "req.user" value ever changes.
 
     if (profiles[0].username === users) { //how to check for multiple profiles??
      res.send({ headlines: [ { username: req.user, headline: profiles[0].headline } ] })

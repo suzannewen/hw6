@@ -25,6 +25,7 @@ describe('Rice Book E2E Testing', () => {
          const newArticle = (newPost) => () => 
              findId('article_text').sendKeys(newPost)
              .then(findId('right').click())
+             .then(findId('right').click())
              .then(findId('post').getText().then(text => {
                  expect(text).to.equal(newPost)
              }))
@@ -37,9 +38,17 @@ describe('Rice Book E2E Testing', () => {
 
     // })
 
-    // it("should update the status headline and verify the change", (done) => {
+    it("should update the status headline and verify the change", (done) => {
+        const newHeadline = 'This is my new headline'
 
-    // })
+        findId('update').sendKeys(newHeadline)
+        .then (findId('update_button').click())
+        .then (sleep(1000))
+        .then (findId('status').getText().then ( text => {
+            expect(text).to.equal(newHeadline)
+        }))
+        .then(done)
+    })
 
     // it("should count the number of followed users", (done) => {
 
@@ -69,17 +78,19 @@ describe('Rice Book E2E Testing', () => {
         .then(findId('emailCurrent').getText().then( text => {
             expect(text).to.equal(newEmail)
         }))
+        .then(done)
     })
 
     it("should update the user's zipcode and verify", (done) => {
         const newZip = '30992'
-        
-        (findId('zipcode').sendKeys(newEmail))
+
+        findId('phone').sendKeys(newZip)
         .then(findId('update').click())
         .then(sleep(1000))
-        .then(findId('emailCurrent').getText().then( text => {
-            expect(text).to.equal(newEmail)
+        .then(findId('zipCurrent').getText().then( text => {
+            expect(text).to.equal(newZip)
         }))
+        .then(done)
     })
 
     // it("should update the user's password, verify a will not change message is returned", (done) => {
