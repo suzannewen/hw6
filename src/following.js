@@ -1,17 +1,21 @@
 const getFriends = (req, res) => {
-  res.send({ hello: 'world' })
+    if (!req.params.user) req.params.user = 'FooBoo'
+    const user = req.params.user
+  res.send({ username: user, following: [ 'yw25', 'sep1' ]})
 }
 
-const addFriends = (req, res) => {
-  res.send( { articles: [ {id: 0, text: 'test1' }, {id: 1, text: 'test2' }, {id: 2, text: 'test3' } ] })
+const addFriend = (req, res) => {
+  const user = req.params.user
+  res.send( { username: 'FooBar', following: [ 'yw25', 'sep1' , 'khl3' ] } )
 }
 
 const deleteFriend = (req, res) => {
-  res.send( { articles: [ {id: 0, text: 'test1' }, {id: 1, text: 'test2' }, {id: 2, text: 'test3' } ] })
+  const user = req.params.user //if its blank??
+  res.send( { username: 'FooBar', following: [ 'yw25' ] } )
 }
 
 module.exports = (app) => {
-  app.get('/following', getFriends)
+  app.get('/following/:user?', getFriends)
   app.put('/following', addFriend)
   app.delete('/following', deleteFriend)
 }
