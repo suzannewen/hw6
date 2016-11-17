@@ -2,34 +2,27 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const logger = require('morgan')
 
-const cors = (req, res, next) => {
-  res.setHeader("Access-Control-Allow-Credentials", "true")
-  res.setHeader("Access-Control-Allow-Headers", "Authorization", "Content-type")
-  res.setHeader("Access-Control-Allow-Methods", "GET", "POST", "PUT", "DELETE")
-  res.setHeader("Access-Control-Allow-Methods", "GET", "POST", "PUT", "DELETE")
-//     'Allow-Origin': req.get('origin'),
-//     'Credentials': 'true',
-//     'Methods': 'GET, PUT, DELETE, POST',
-//     'Headers': 'Authorization, Content-Type'
-// })
+// const cors = (req, res, next) => {
+//   res.setHeader("Access-Control-Allow-Credentials", "true")
+//   res.setHeader("Access-Control-Allow-Headers", "Authorization", "Content-type")
+//   res.setHeader("Access-Control-Allow-Methods", "GET", "POST, PUT, DELETE")
+//   res.setHeader("Access-Control-Allow-Origin", req.get('origin'))
 
-  if (req.method === 'OPTIONS') {
-    res.status(200)
-  }
+//   if (req.method === 'OPTIONS') {
+//     res.status(200)
+//   }
 
-  next()
-}
+//   next()
+// }
 
 const app = express()
 app.use(bodyParser.json())
-app.use(cors)
+// app.use(cors)
 
+require('./src/auth')(app)
 require('./src/profile')(app)
 require('./src/articles')(app)
 require('./src/following')(app)
-require('./src/auth')(app)
-
-
 
 // Get the port from the environment, i.e., Heroku sets it
 const port = process.env.PORT || 3000
