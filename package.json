@@ -7,9 +7,13 @@
   "main": "index.js",
   "dependencies": {
     "body-parser": "^1.14.1",
+    "cloudinary": "^1.4.4",
     "express": "^4.13.3",
+    "lodash": "^4.17.2",
+    "md5": "^2.2.1",
     "mongoose": "^4.6.5",
     "morgan": "^1.7.0",
+    "multer": "^1.2.0",
     "redis": "^2.6.3"
   },
   "scripts": {

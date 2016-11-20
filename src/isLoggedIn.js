@@ -1,4 +1,4 @@
-const isLoggedIn => {
+const isLoggedIn = () => {
    console.log('is logged in')
 }
 

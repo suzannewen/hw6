@@ -1,3 +1,5 @@
+const uploadImage = require('./upload')
+
 const profiles = [ {
         username: 'FooBar',
         headline: 'This is my headline!',
@@ -53,9 +55,14 @@ const getAvatars = (req, res) => {
   res.send({ avatar: profiles[0].avatar })
 }
 
-const updateAvatars = (req, res) => {
-  profiles[0].avatar = req.body.avatar
-  res.send({ avatar: profiles[0].avatar })
+const uploadAvatar = (req, res) => {
+  console.log(req)
+     // create an image tag from the cloudinary upload
+   const image = cloudinary.image(req.fileid, {
+       format: "png", width: 100, height: 130, crop: "fill" 
+   })
+   // create a response to the user's upload
+   res.send(`Uploaded: ${req.fileurl}<br/><a href="${req.fileurl}">${image}</a>`);
 }
 
 module.exports = (app) => {
@@ -67,5 +74,5 @@ module.exports = (app) => {
     app.get('/zipcode/:user?', getZipcode)
     app.put('/zipcode', updateZipcode)
     app.get('/avatars/:user?', getAvatars)
-    app.put('/avatar', updateAvatars)
+    app.post('/avatar', uploadImage('new avatar'), uploadAvatar)
 }

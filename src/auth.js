@@ -1,74 +1,53 @@
-const express = require('express')
-const session = require('express-session')
-const passport = require('passport')
 const md5 = require('md5')
+const _ = require('lodash');
+const User = require('../model').User
+const Profile = require('../model').Profile
 
-const FacebookStrategy = require('passport-facebook').Strategy
-
-const app = express()
-var users = []
-
-app.use(session({ secret: 'This is the secret message' }))
-app.use(passport.initialize())
-app.use(passport.session())
-
-const clientSecret = '683860abd11f3c8844f5086f238b62c1'
-const clientID = '1791594551114737'
-const callbackURL = 'http://localhost:3000/auth/callback'
-
-const config = { clientSecret, clientID, callbackURL }
-
-passport.serializeUser(function (user, done) {
-  users[user.id] = user
-  done(null, user.id)
-})
-
-passport.deserializeUser(function (id, done) {
-  var user = users[id]
-  done(null, user)
-})
-
-passport.use(new FacebookStrategy(config, function (token, refreshToken, profile, done) {
-  process.nextTick(function () {
-    return done(null, profile)
-  })
-}))
+const sessionUser = {}
+const cookieKey = 'sid'
 
 const login = (req, res) => {
   const mySecretMessage = "secretterces"
   const username = req.body.username
   const password = req.body.password
+  const userObj = User.find( { username: username } )
+  console.log(userObj)
   const checkPW = md5(password + userObj.salt)
 
-  const userObj = User.find( { username: username })
   if (userObj.hash === checkPW) {
     const sessionKey = md5(mySecretMessage + new Date().getTime() + userObj.username)
     sessionUser[sessionKey] = userObj
+    console.log(sessionUser)
 
     res.cookie(cookieKey, sessionKey, { maxAge: 3600*1000, httpOnly: true})
   }
 
-  res.send( { username: 'Suzanne'}, { result: 'unauthroized' } )
-}
-
-const isLoggedIn = (req, res) => {
-  res.send( { username: 'Suzanne' }, { result: 'success'} )
+  res.send( { username: 'Suzanne', result: 'unauthroized' } )
 }
 
 const logout = (req, res) => {
-  res.send( { articles: [ {id: 0, text: 'test1' }, {id: 1, text: 'test2' }, {id: 2, text: 'test3' } ] })
+  const username = req.username
+  const userObj = User.find( { username: username } )
+
+  const key = _.findKey( sessionUser, userObj )
+  delete sessionUser[key]
+
+  res.status(200).send('OK')
 }
 
 const register = (req, res) => {
-  //still needs to get username...etc.
+  const username = req.body.username
+  const password = req.body.password
+  const email = req.body.email
+  const zipcode = req.body.zipcode
 
   const salt = username + new Date().getTime()
   const hash = md5(password + salt)
 
   const newUser = new User({ 
-    name: username
+    username: username,
     salt: salt,
-    hash: hash
+    hash: hash,
    })
 
   const newProfile = new Profile({ 
@@ -96,18 +75,16 @@ const register = (req, res) => {
     }
   })
 
-  res.send( { username: 'Suzanne' }, { result: 'success'} )
+  res.status(200).send({ username: username, result: 'successfully registered'})
 }
 
-const password = (req, res) => {
+const changePassword = (req, res) => {
   res.send( { username: 'Suzanne' }, { result: 'new password set'} )
 }
 
 module.exports = (app) => {
-  app.get('/auth/login', passport.authenticate('facebook', { scope: 'email' }))
-  app.get('/auth/callback', passport.authenticate('facebook', { successRedirect: '/login', failureRedirect: '/logout'}))
   app.post('/login', login)
   app.put('/logout', logout)
   app.post('/register', register)
-  app.put('/password', password)
+  app.put('/password', changePassword)
 }

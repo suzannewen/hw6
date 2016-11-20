@@ -1,23 +1,47 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const logger = require('morgan')
+const User = require('./model').User
 
-// const cors = (req, res, next) => {
-//   res.setHeader("Access-Control-Allow-Credentials", "true")
-//   res.setHeader("Access-Control-Allow-Headers", "Authorization", "Content-type")
-//   res.setHeader("Access-Control-Allow-Methods", "GET", "POST, PUT, DELETE")
-//   res.setHeader("Access-Control-Allow-Origin", req.get('origin'))
+const cors = (req, res, next) => {
+  res.setHeader("Access-Control-Allow-Credentials", "true")
+  res.setHeader("Access-Control-Allow-Headers", "Authorization, Origin, X-Requested-With, Content-Type, Accept")
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
+  res.setHeader("Access-Control-Allow-Origin", req.headers.origin)
 
-//   if (req.method === 'OPTIONS') {
-//     res.status(200)
-//   }
+  if (req.method === 'OPTIONS') {
+    res.status(200).send('OK')
+  }
+  else {
+    next()
+  }
+}
 
-//   next()
-// }
+const isLoggedIn = (req, res, next) => {
+  const username = req.body.username
+  if (req.cookie) {
+    const cookie = req.cookie
+
+      const userObj = User.find( { username: username } )
+
+      if (!userObj) {
+        return res.status(401).send('Unauthorized')
+      }
+      else {
+        res.cookie(cookie)
+        return res.status(200).send('OK')
+      }
+
+  }
+  else {
+    return res.status(401).send('Unauthorized')
+  }
+}
 
 const app = express()
 app.use(bodyParser.json())
-// app.use(cors)
+app.use(cors)
+// app.use(isLoggedIn)
 
 require('./src/auth')(app)
 require('./src/profile')(app)
