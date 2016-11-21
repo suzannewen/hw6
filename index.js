@@ -1,5 +1,6 @@
 const express = require('express')
 const bodyParser = require('body-parser')
+const cookieParser = require('cookie-parser')
 const logger = require('morgan')
 const User = require('./model').User
 
@@ -40,6 +41,7 @@ const isLoggedIn = (req, res, next) => {
 
 const app = express()
 app.use(bodyParser.json())
+app.use(cookieParser())
 app.use(cors)
 // app.use(isLoggedIn)
 
