@@ -19,36 +19,59 @@ const addFriend = (req, res) => {
   const newFriend = req.params.user
   let currentFollow = []
 
+  if (newFriend === req.username) { //prevents user from adding themselves as a friend
+    return res.status(404).send( 'You cannot add yourself as a friend.' )
+  }
+
   Profile
     .findOne( { username: req.username } )
     .exec( (err, foundUser) => { 
       currentFollow = foundUser.following //gets the current friend list
-    })
 
-  Profile
-    .findOne( { username: newFriend } )
-    .exec( (err, foundFriend) => { //checks if added friend exists
-      if (foundFriend === null) {
-        return res.status(404).send( 'This user does not exist.' )
-      }
-      else {
-        const newFollowing = currentFollow.concat( [ newFriend] )
-        Profile
-          .findOneAndUpdate( { username: req.username }, { following: newFollowing })
-          .exec( (err, foundUser) => {
-              res.send( { username: req.username, following: newFollowing } )
-          })
-      }
+      Profile
+        .findOne( { username: newFriend } )
+        .exec( (err, foundFriend) => { //checks if added friend exists
+          if (foundFriend === null) {
+            return res.status(404).send( 'This user does not exist.' )
+          }
+          else {
+            let newFollowing = currentFollow
+            if (currentFollow.includes(newFriend) === false) { //only add the friend if they don't already exist
+              newFollowing = newFollowing.concat( [ newFriend ] )
+            }
+            Profile
+              .findOneAndUpdate( { username: req.username }, { following: newFollowing })
+              .exec( (err, foundUser) => {
+                  return res.send( { username: req.username, following: newFollowing } )
+              })
+          }
+        })
     })
 }
 
 const deleteFriend = (req, res) => {
-  const user = req.params.user //if its blank??
-  res.send( { username: 'FooBar', following: [ 'yw25' ] } )
+  const removeFriend = req.params.user
+
+  Profile
+    .findOne( { username: req.username } )
+    .exec( (err, foundUser) => { 
+      currentFollow = foundUser.following //gets the current friend list
+
+      const index = currentFollow.indexOf(removeFriend)
+      if (index > -1 )  {
+        currentFollow.splice(index, 1) //friend is removed from current following list
+      }
+
+      Profile
+        .findOneAndUpdate( { username: req.username }, { following: currentFollow })
+        .exec( (err, foundUser) => {
+          return res.send( { username: req.username, following: currentFollow } )
+        })
+    })
 }
 
 module.exports = (app) => {
   app.get('/following/:user?', getFriends)
   app.put('/following/:user', addFriend)
-  app.delete('/following:user', deleteFriend)
+  app.delete('/following/:user', deleteFriend)
 }

@@ -12,24 +12,22 @@ const Profile = require('../model').Profile
 
 const getHeadlines = (req, res) => {
   let users = []
-  if (!req.params.user) {
+  if (!req.params.users) {
     users.push(req.username)
   }
   else {
     users = req.params.users ? req.params.users.split(',') : [req.user]
   }
 
-  let headlines = []
-  let arrayDone = 0;
-  users.forEach( (user) => {
-    Profile
-      .findOne( { username: user } )
-      .exec( (err, foundUser) => {
-          arrayDone++
-          headlines.push({username: user, headline: foundUser.status})
+  Profile
+    .find( { username: {  $in : users } } )
+    .exec( (err, foundUsers) => {
+        const headlineArray = foundUsers.map( (user) => {
+        let headlineObj =  {username: user.username, headline: user.status}
+        return headlineObj
       })
-      res.send({ headlines: headlines }) //needs to execute after all of the for each queries
-  })
+      res.send( { headlines: headlineArray } )
+    })
 }
 
 const updateHeadline = (req, res) => {
