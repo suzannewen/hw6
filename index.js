@@ -18,32 +18,10 @@ const cors = (req, res, next) => {
   }
 }
 
-const isLoggedIn = (req, res, next) => {
-  const username = req.body.username
-  if (req.cookie) {
-    const cookie = req.cookie
-
-      const userObj = User.find( { username: username } )
-
-      if (!userObj) {
-        return res.status(401).send('Unauthorized')
-      }
-      else {
-        res.cookie(cookie)
-        return res.status(200).send('OK')
-      }
-
-  }
-  else {
-    return res.status(401).send('Unauthorized')
-  }
-}
-
 const app = express()
 app.use(bodyParser.json())
 app.use(cookieParser())
 app.use(cors)
-// app.use(isLoggedIn)
 
 require('./src/auth')(app)
 require('./src/profile')(app)

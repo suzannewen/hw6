@@ -1,58 +1,110 @@
 const uploadImage = require('./upload')
+const User = require('../model').User
+const Profile = require('../model').Profile
 
-const profiles = [ {
-        username: 'FooBar',
-        headline: 'This is my headline!',
-        email: 'foo@bar.com',
-        zipcode: 12345,
-        avatar: 'https://upload.wikimedia.org/wikipedia/en/thumb/4/4e/DWLeebron.jpg/220px-DWLeebron.jpg'
-} ]
+// const profiles = [ {
+//         username: 'FooBar',
+//         headline: 'This is my headline!',
+//         email: 'foo@bar.com',
+//         zipcode: 12345,
+//         avatar: 'https://upload.wikimedia.org/wikipedia/en/thumb/4/4e/DWLeebron.jpg/220px-DWLeebron.jpg'
+// } ]
 
 const getHeadlines = (req, res) => {
+  let users = []
+  if (!req.params.user) {
+    users.push(req.username)
+  }
+  else {
+    users = req.params.users ? req.params.users.split(',') : [req.user]
+  }
 
-    if (!req.user) req.user = profiles[0].username
-    const users = req.params.users ? req.params.users.split(',') : [req.user]
-
-    if (profiles[0].username === users) { //how to check for multiple profiles??
-     res.send({ headlines: [ { username: req.user, headline: profiles[0].headline } ] })
-     return
-    }
-
-    res.send({ headlines: [ { username: req.user, headline: profiles[0].headline } ] })
+  let headlines = []
+  let arrayDone = 0;
+  users.forEach( (user) => {
+    Profile
+      .findOne( { username: user } )
+      .exec( (err, foundUser) => {
+          arrayDone++
+          headlines.push({username: user, headline: foundUser.status})
+      })
+      res.send({ headlines: headlines }) //needs to execute after all of the for each queries
+  })
 }
 
 const updateHeadline = (req, res) => {
-  profiles[0].headline = req.body.headline
-  res.send({ headlines: [ { username: profiles[0].username, headline: profiles[0].headline } ] })
+    Profile
+    .findOneAndUpdate( { username: req.username }, { headline: req.body.headline } )
+    .exec( (err, foundUser) => {
+        res.send( { username: req.username, headline: req.body.headline } )
+    })
 }
 
 const getEmail = (req, res) => {
-    if (!req.user) req.user = 'Scott'
-    const users = req.params.users ? req.params.users.split(',') : [req.user]
-
-  res.send( { email: profiles[0].email } )
+  let user = ''
+  if (!req.params.user) {
+    user = req.username
+  }
+  else {
+    user = req.user
+  }
+  // const users = req.params.users ? req.params.users.split(',') : [req.user]
+  Profile
+    .findOne( { username: user } )
+    .exec( (err, foundUser) => {
+        res.send( { username: req.username, email: foundUser.email } )
+    })
 }
 
 const updateEmail = (req, res) => {
-  profiles[0].email = req.body.email
-  res.send( { email: profiles[0].email } )
+  Profile
+    .findOneAndUpdate( { username: req.username }, { email: req.body.email } )
+    .exec( (err, foundUser) => {
+        res.send( { username: req.username, email: req.body.email } )
+    })
 }
 
 const getDOB = (req, res) => {
-  res.send( { username: 'loggedInUser', dob: 'milliseconds' } )
+  // const dob = new Date()
+  Profile
+    .findOne( { username: req.username } )
+    .exec( (err, foundUser) => {
+      console.log('dob =' + foundUser.dob.getMilliseconds())
+        res.send( { username: req.username, dob: foundUser.dob.getMilliseconds() } )
+    })
 }
 
 const getZipcode = (req, res) => {
-  res.send({ zipcode: profiles[0].zipcode })
+  Profile
+    .findOne( { username: req.username } )
+    .exec( (err, foundUser) => {
+        res.send( { username: req.username, zipcode: foundUser.zipcode } )
+    })
 }
 
 const updateZipcode = (req, res) => {
-  profiles[0].zipcode = req.body.zipcode
-  res.send( { zipcode: profiles[0].zipcode } )
+    Profile
+    .findOneAndUpdate( { username: req.username }, { zipcode: req.body.zipcode } )
+    .exec( (err, foundUser) => {
+        res.send( { username: req.username, zipcode: req.body.zipcode } )
+    })
 }
 
 const getAvatars = (req, res) => {
-  res.send({ avatar: profiles[0].avatar })
+  // console.log(req.params.user)
+  let user = ''
+  if (!req.params.user) {
+    user = req.username
+  }
+  else {
+    user = req.params.user
+  }
+  // const users = req.params.users ? req.params.users.split(',') : [req.user]
+  Profile
+    .findOne( { username: user } )
+    .exec( (err, foundUser) => {
+        res.send( { username: req.username, avatar: foundUser.picture } )
+    })
 }
 
 const uploadAvatar = (req, res) => {

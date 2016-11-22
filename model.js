@@ -9,7 +9,7 @@ const commentSchema = new mongoose.Schema({
 })
 
 const postSchema = new mongoose.Schema({
-	id: Number,
+	// id: Number,
       author: String,
       img: String,
       date: Date,
@@ -29,10 +29,12 @@ var profileSchema = new mongoose.Schema({
     following: [ String ],
     email: String,
     zipcode: String,
+    dob: Date,
     picture: String 
 })
 
-exports.Article = mongoose.model('post', postSchema)
-exports.User = mongoose.model('user', userSchema)
-exports.Profile = mongoose.model('profile', profileSchema)
+exports.Comment = mongoose.model('Comment', commentSchema)
+exports.Article = mongoose.model('Post', postSchema)
+exports.User = mongoose.model('User', userSchema)
+exports.Profile = mongoose.model('Profile', profileSchema)
 
