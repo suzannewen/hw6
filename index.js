@@ -8,7 +8,7 @@ const cors = (req, res, next) => {
   res.setHeader("Access-Control-Allow-Credentials", "true")
   res.setHeader("Access-Control-Allow-Headers", "Authorization, Origin, X-Requested-With, Content-Type, Accept")
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
-  res.setHeader("Access-Control-Allow-Origin", req.headers.origin)
+  res.setHeader("Access-Control-Allow-Origin", "http://suzwen-ricebook.surge.sh")
 
   if (req.method === 'OPTIONS') {
     res.status(200).send('OK')
