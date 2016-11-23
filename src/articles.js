@@ -3,6 +3,7 @@ var nextID = 4
 
 const Article = require('../model').Article
 const Profile = require('../model').Profile
+const Comment = require('../model').Comment
  
 const postArticle = (req, res) => {
   const newArticle = new Article({ 
@@ -18,17 +19,10 @@ const postArticle = (req, res) => {
       if (err) {
         console.log(err)
       } else {
-        console.log('saved user')
+        console.log('saved article')
       }
     })
 
-  // const newArticle = {
-  //     id: nextID++,
-  //     author: 'Tom',
-  //     text: req.body.text,
-  //     date: new Date(),
-  //     comments: [ ]
-  // }
   res.send({ articles: newArticle })
 }
 
@@ -50,17 +44,42 @@ const getArticles = (req, res) => {
     }
 }
 
-// If commentId is supplied, then update the requested comment on the article. If commentId is -1, then a new comment is posted with the text message.
+// If commentId is supplied, then update the requested comment on the article
 const updateArticle = (req, res) => {
-    if (!res.body.commentId) { // Update the article :id with a new text if commentId not supplied.
+    if (!req.body.commentId) { // Update the article :id with a new text if commentId not supplied.
       Article
-        .findOneAndUpdate( { _id: res.params.id }, { text: res.body.text } )
+        .findOneAndUpdate( { _id: req.params.id }, { text: req.body.text } )
         .exec ( (err, updatedArticle) => {
-          res.send( { articles: updatedArticle })
+          // res.send( { articles: updatedArticle })
+            Article
+              .find( {} )
+              .exec ((err, allArticles) => {
+                return res.send( { articles: allArticles })
+              })
         } )
     }
-    else {
-
+    else if (req.body.commentId === -1 ){ //If commentId is -1, then a new comment is posted with the text message.
+      Article
+        .findOne( { _id: req.params.id } )
+        .exec ( (err, foundArticle) => {
+          let comments = foundArticle.comments
+          const newComment = new Comment({ 
+            author: req.username,
+            text: req.body.text,
+            date: new Date()
+          })
+          comments = comments.concat( [ newComment ] )
+          console.log(comments)
+          Article
+           .findOneAndUpdate( { _id: req.params.id }, { comments: comments } )
+           .exec ((err, updatedArticle) => {
+             Article
+              .find( {} )
+              .exec ((err, allArticles) => {
+                return res.send( { articles: allArticles })
+              })
+           })
+        } )
     }
   //   const articleIndex = articles.find(function(article) {
   //       console.log(req.params.id )

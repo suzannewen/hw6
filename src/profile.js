@@ -2,14 +2,6 @@ const uploadImage = require('./upload')
 const User = require('../model').User
 const Profile = require('../model').Profile
 
-// const profiles = [ {
-//         username: 'FooBar',
-//         headline: 'This is my headline!',
-//         email: 'foo@bar.com',
-//         zipcode: 12345,
-//         avatar: 'https://upload.wikimedia.org/wikipedia/en/thumb/4/4e/DWLeebron.jpg/220px-DWLeebron.jpg'
-// } ]
-
 const getHeadlines = (req, res) => {
   let users = []
   if (!req.params.users) {
@@ -31,9 +23,10 @@ const getHeadlines = (req, res) => {
 }
 
 const updateHeadline = (req, res) => {
-    Profile
-    .findOneAndUpdate( { username: req.username }, { headline: req.body.headline } )
+  Profile
+    .findOneAndUpdate( { username: req.username }, { status: req.body.headline } )
     .exec( (err, foundUser) => {
+        console.log(foundUser)
         res.send( { username: req.username, headline: req.body.headline } )
     })
 }

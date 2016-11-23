@@ -2,14 +2,12 @@ const mongoose = require('mongoose')
 require('./db.js')
 
 const commentSchema = new mongoose.Schema({
-      commentId: Number,
       author: String,
       text: String,
-      date: Date,
+      date: Date
 })
 
 const postSchema = new mongoose.Schema({
-	// id: Number,
       author: String,
       img: String,
       date: Date,
