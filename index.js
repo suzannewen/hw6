@@ -5,7 +5,6 @@ const logger = require('morgan')
 const User = require('./model').User
 
 const cors = (req, res, next) => {
-  console.log('origin' + req.headers.origin)
   res.setHeader("Access-Control-Allow-Credentials", "true")
   res.setHeader("Access-Control-Allow-Headers", "Authorization, Origin, X-Requested-With, Content-Type, Accept")
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
