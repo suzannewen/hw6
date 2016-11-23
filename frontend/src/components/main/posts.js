@@ -32,7 +32,7 @@ export const Posts = ({ text, id, comments, editPost, friends, showComments, edi
     </div>
     <div className="comments">
         {comments.map( ({ _id, text }) => (
-            <Comment key={ _id } text={ text } id={ _id } editComment={ editComment } />
+            <Comment key={ _id } text={ text } commentId={ _id } postId={ id } />
         ) )}
     </div>
   </div>
@@ -51,7 +51,6 @@ export default connect(
     (dispatch) => {
         return {
           editPost: (content, id) => editPost(content, id)(dispatch),
-          editComment: (content, id) => editComment(content, id)(dispatch),
           addComment: (text, id) => addComment(text, id)(dispatch)
         }
     }

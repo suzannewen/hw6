@@ -54,10 +54,6 @@
 	
 	var _reactRedux = __webpack_require__(172);
 	
-	var _reduxLogger = __webpack_require__(195);
-	
-	var _reduxLogger2 = _interopRequireDefault(_reduxLogger);
-	
 	var _redux = __webpack_require__(179);
 	
 	var _reducer = __webpack_require__(196);
@@ -71,9 +67,13 @@
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	__webpack_require__(220);
+	// import createLogger from 'redux-logger'
+	// import { createStore, applyMiddleware } from 'redux'
 	
-	var logger = (0, _reduxLogger2.default)();
-	var store = (0, _redux.createStore)(_reducer2.default, (0, _redux.applyMiddleware)(logger));
+	
+	// const logger = createLogger()
+	// const store = createStore(Reducer, applyMiddleware(logger))
+	var store = (0, _redux.createStore)(_reducer2.default);
 	
 	(0, _reactDom.render)(_react2.default.createElement(
 	    _reactRedux.Provider,
@@ -23024,239 +23024,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ },
-/* 195 */
-/***/ function(module, exports) {
-
-	"use strict";
-	
-	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-	
-	function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
-	
-	var repeat = function repeat(str, times) {
-	  return new Array(times + 1).join(str);
-	};
-	var pad = function pad(num, maxLength) {
-	  return repeat("0", maxLength - num.toString().length) + num;
-	};
-	var formatTime = function formatTime(time) {
-	  return "@ " + pad(time.getHours(), 2) + ":" + pad(time.getMinutes(), 2) + ":" + pad(time.getSeconds(), 2) + "." + pad(time.getMilliseconds(), 3);
-	};
-	
-	// Use the new performance api to get better precision if available
-	var timer = typeof performance !== "undefined" && typeof performance.now === "function" ? performance : Date;
-	
-	/**
-	 * parse the level option of createLogger
-	 *
-	 * @property {string | function | object} level - console[level]
-	 * @property {object} action
-	 * @property {array} payload
-	 * @property {string} type
-	 */
-	
-	function getLogLevel(level, action, payload, type) {
-	  switch (typeof level === "undefined" ? "undefined" : _typeof(level)) {
-	    case "object":
-	      return typeof level[type] === "function" ? level[type].apply(level, _toConsumableArray(payload)) : level[type];
-	    case "function":
-	      return level(action);
-	    default:
-	      return level;
-	  }
-	}
-	
-	/**
-	 * Creates logger with followed options
-	 *
-	 * @namespace
-	 * @property {object} options - options for logger
-	 * @property {string | function | object} options.level - console[level]
-	 * @property {boolean} options.duration - print duration of each action?
-	 * @property {boolean} options.timestamp - print timestamp with each action?
-	 * @property {object} options.colors - custom colors
-	 * @property {object} options.logger - implementation of the `console` API
-	 * @property {boolean} options.logErrors - should errors in action execution be caught, logged, and re-thrown?
-	 * @property {boolean} options.collapsed - is group collapsed?
-	 * @property {boolean} options.predicate - condition which resolves logger behavior
-	 * @property {function} options.stateTransformer - transform state before print
-	 * @property {function} options.actionTransformer - transform action before print
-	 * @property {function} options.errorTransformer - transform error before print
-	 */
-	
-	function createLogger() {
-	  var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-	  var _options$level = options.level;
-	  var level = _options$level === undefined ? "log" : _options$level;
-	  var _options$logger = options.logger;
-	  var logger = _options$logger === undefined ? console : _options$logger;
-	  var _options$logErrors = options.logErrors;
-	  var logErrors = _options$logErrors === undefined ? true : _options$logErrors;
-	  var collapsed = options.collapsed;
-	  var predicate = options.predicate;
-	  var _options$duration = options.duration;
-	  var duration = _options$duration === undefined ? false : _options$duration;
-	  var _options$timestamp = options.timestamp;
-	  var timestamp = _options$timestamp === undefined ? true : _options$timestamp;
-	  var transformer = options.transformer;
-	  var _options$stateTransfo = options.stateTransformer;
-	  var // deprecated
-	  stateTransformer = _options$stateTransfo === undefined ? function (state) {
-	    return state;
-	  } : _options$stateTransfo;
-	  var _options$actionTransf = options.actionTransformer;
-	  var actionTransformer = _options$actionTransf === undefined ? function (actn) {
-	    return actn;
-	  } : _options$actionTransf;
-	  var _options$errorTransfo = options.errorTransformer;
-	  var errorTransformer = _options$errorTransfo === undefined ? function (error) {
-	    return error;
-	  } : _options$errorTransfo;
-	  var _options$colors = options.colors;
-	  var colors = _options$colors === undefined ? {
-	    title: function title() {
-	      return "#000000";
-	    },
-	    prevState: function prevState() {
-	      return "#9E9E9E";
-	    },
-	    action: function action() {
-	      return "#03A9F4";
-	    },
-	    nextState: function nextState() {
-	      return "#4CAF50";
-	    },
-	    error: function error() {
-	      return "#F20404";
-	    }
-	  } : _options$colors;
-	
-	  // exit if console undefined
-	
-	  if (typeof logger === "undefined") {
-	    return function () {
-	      return function (next) {
-	        return function (action) {
-	          return next(action);
-	        };
-	      };
-	    };
-	  }
-	
-	  if (transformer) {
-	    console.error("Option 'transformer' is deprecated, use stateTransformer instead");
-	  }
-	
-	  var logBuffer = [];
-	  function printBuffer() {
-	    logBuffer.forEach(function (logEntry, key) {
-	      var started = logEntry.started;
-	      var startedTime = logEntry.startedTime;
-	      var action = logEntry.action;
-	      var prevState = logEntry.prevState;
-	      var error = logEntry.error;
-	      var took = logEntry.took;
-	      var nextState = logEntry.nextState;
-	
-	      var nextEntry = logBuffer[key + 1];
-	      if (nextEntry) {
-	        nextState = nextEntry.prevState;
-	        took = nextEntry.started - started;
-	      }
-	      // message
-	      var formattedAction = actionTransformer(action);
-	      var isCollapsed = typeof collapsed === "function" ? collapsed(function () {
-	        return nextState;
-	      }, action) : collapsed;
-	
-	      var formattedTime = formatTime(startedTime);
-	      var titleCSS = colors.title ? "color: " + colors.title(formattedAction) + ";" : null;
-	      var title = "action " + (timestamp ? formattedTime : "") + " " + formattedAction.type + " " + (duration ? "(in " + took.toFixed(2) + " ms)" : "");
-	
-	      // render
-	      try {
-	        if (isCollapsed) {
-	          if (colors.title) logger.groupCollapsed("%c " + title, titleCSS);else logger.groupCollapsed(title);
-	        } else {
-	          if (colors.title) logger.group("%c " + title, titleCSS);else logger.group(title);
-	        }
-	      } catch (e) {
-	        logger.log(title);
-	      }
-	
-	      var prevStateLevel = getLogLevel(level, formattedAction, [prevState], "prevState");
-	      var actionLevel = getLogLevel(level, formattedAction, [formattedAction], "action");
-	      var errorLevel = getLogLevel(level, formattedAction, [error, prevState], "error");
-	      var nextStateLevel = getLogLevel(level, formattedAction, [nextState], "nextState");
-	
-	      if (prevStateLevel) {
-	        if (colors.prevState) logger[prevStateLevel]("%c prev state", "color: " + colors.prevState(prevState) + "; font-weight: bold", prevState);else logger[prevStateLevel]("prev state", prevState);
-	      }
-	
-	      if (actionLevel) {
-	        if (colors.action) logger[actionLevel]("%c action", "color: " + colors.action(formattedAction) + "; font-weight: bold", formattedAction);else logger[actionLevel]("action", formattedAction);
-	      }
-	
-	      if (error && errorLevel) {
-	        if (colors.error) logger[errorLevel]("%c error", "color: " + colors.error(error, prevState) + "; font-weight: bold", error);else logger[errorLevel]("error", error);
-	      }
-	
-	      if (nextStateLevel) {
-	        if (colors.nextState) logger[nextStateLevel]("%c next state", "color: " + colors.nextState(nextState) + "; font-weight: bold", nextState);else logger[nextStateLevel]("next state", nextState);
-	      }
-	
-	      try {
-	        logger.groupEnd();
-	      } catch (e) {
-	        logger.log("—— log end ——");
-	      }
-	    });
-	    logBuffer.length = 0;
-	  }
-	
-	  return function (_ref) {
-	    var getState = _ref.getState;
-	    return function (next) {
-	      return function (action) {
-	        // exit early if predicate function returns false
-	        if (typeof predicate === "function" && !predicate(getState, action)) {
-	          return next(action);
-	        }
-	
-	        var logEntry = {};
-	        logBuffer.push(logEntry);
-	
-	        logEntry.started = timer.now();
-	        logEntry.startedTime = new Date();
-	        logEntry.prevState = stateTransformer(getState());
-	        logEntry.action = action;
-	
-	        var returnedValue = undefined;
-	        if (logErrors) {
-	          try {
-	            returnedValue = next(action);
-	          } catch (e) {
-	            logEntry.error = errorTransformer(e);
-	          }
-	        } else {
-	          returnedValue = next(action);
-	        }
-	
-	        logEntry.took = timer.now() - logEntry.started;
-	        logEntry.nextState = stateTransformer(getState());
-	
-	        printBuffer();
-	
-	        if (logEntry.error) throw logEntry.error;
-	        return returnedValue;
-	      };
-	    };
-	  };
-	}
-	
-	module.exports = createLogger;
-
-/***/ },
+/* 195 */,
 /* 196 */
 /***/ function(module, exports) {
 
@@ -23482,7 +23250,7 @@
 	
 	var _friend = __webpack_require__(200);
 	
-	var _headlineAction = __webpack_require__(201);
+	var _mainAction = __webpack_require__(226);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -23575,13 +23343,13 @@
 	}, function (dispatch) {
 	  return {
 	    updateHeadline: function updateHeadline(headline) {
-	      return (0, _headlineAction.updateHeadline)(headline)(dispatch);
+	      return (0, _mainAction.updateHeadline)(headline)(dispatch);
 	    },
 	    addFriend: function addFriend(friend) {
-	      return (0, _headlineAction.addFriend)(friend)(dispatch);
+	      return (0, _mainAction.addFriend)(friend)(dispatch);
 	    },
 	    deleteFriend: function deleteFriend(name) {
-	      return (0, _headlineAction.deleteFriend)(name)(dispatch);
+	      return (0, _mainAction.deleteFriend)(name)(dispatch);
 	    }
 	  };
 	})(MainBar);
@@ -23603,7 +23371,7 @@
 	
 	var _reactRedux = __webpack_require__(172);
 	
-	var _headlineAction = __webpack_require__(201);
+	var _mainAction = __webpack_require__(226);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -23639,63 +23407,7 @@
 	};
 
 /***/ },
-/* 201 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.deleteFriend = exports.addFriend = exports.updateHeadline = undefined;
-	
-	var _resource = __webpack_require__(202);
-	
-	var _dataAction = __webpack_require__(205);
-	
-	//resource called to 'put' headline into database
-	var updateHeadline = function updateHeadline(headline) {
-	  return function (dispatch) {
-	    return (0, _resource.resource)('PUT', 'headline', { headline: headline }).then(function (r) {
-	      dispatch({ type: 'UPDATE_HEADLINE', headline: headline });
-	    });
-	  };
-	};
-	
-	var addFriend = function addFriend(newFriend) {
-	  return function (dispatch) {
-	    var friendList = '';
-	    (0, _resource.resource)('PUT', 'following/' + newFriend).then(function (r) {
-	      friendList = r.following.toString();
-	      return (0, _resource.resource)('GET', 'headlines/' + friendList);
-	    }).then(function (r) {
-	      dispatch({ type: 'FRIEND', friends: r.headlines });
-	    });
-	  };
-	};
-	
-	var deleteFriend = function deleteFriend(deleted) {
-	  return function (dispatch) {
-	    var friendList = '';
-	    (0, _resource.resource)('DELETE', 'following/' + deleted).then(function (r) {
-	      friendList = r.following.toString();
-	      return (0, _resource.resource)('GET', 'headlines/' + friendList);
-	    }).then(function (r) {
-	      if (friendList.length === 0) {
-	        //if friend list is empty, update state with an empty friend list (otherwise, /headlines will send back logged in user)
-	        dispatch({ type: 'FRIEND', friends: [] });
-	      } else {
-	        dispatch({ type: 'FRIEND', friends: r.headlines });
-	      }
-	    });
-	  };
-	};
-	
-	exports.updateHeadline = updateHeadline;
-	exports.addFriend = addFriend;
-	exports.deleteFriend = deleteFriend;
-
-/***/ },
+/* 201 */,
 /* 202 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -23712,8 +23424,7 @@
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	// const url = 'https://webdev-dummy.herokuapp.com'
-	var url = 'http://localhost:3000';
+	var url = 'https://suzwen-ricebookserver.herokuapp.com';
 	
 	//wraps fetch in wrapper method
 	var resource = function resource(method, endpoint, payload) {
@@ -23732,8 +23443,6 @@
 	    if (r.status === 200) {
 	      return r.headers.get('Content-Type').indexOf('json') > 0 ? r.json() : r.text();
 	    } else {
-	      // useful for debugging, but remove in production
-	      console.error(method + ' ' + endpoint + ' ' + r.statusText);
 	      throw new Error(r.statusText);
 	    }
 	  });
@@ -24246,7 +23955,6 @@
 	      return function (dispatch) {
 	            return (0, _resource.resource)('GET', 'articles') //needs to add showComments boolean to each object
 	            .then(function (r5) {
-	                  console.log(r5);
 	                  dispatch({ type: 'ARTICLES', articles: r5.articles });
 	            });
 	      };
@@ -24339,7 +24047,7 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.addComment = exports.editPost = exports.newPost = undefined;
+	exports.editComment = exports.addComment = exports.editPost = exports.newPost = undefined;
 	
 	var _resource = __webpack_require__(202);
 	
@@ -24361,7 +24069,6 @@
 	  return function (dispatch) {
 	    (0, _resource.resource)('PUT', 'articles/' + postId, { text: message, commentId: -1 }).then(function (r) {
 	      dispatch({ type: 'ARTICLES', articles: r.articles });
-	      // getArticles()(dispatch) 
 	    });
 	  };
 	};
@@ -24370,7 +24077,6 @@
 	  return function (dispatch) {
 	    (0, _resource.resource)('PUT', 'articles/' + postId, { text: message, commentId: commentId }).then(function (r) {
 	      dispatch({ type: 'ARTICLES', articles: r.articles });
-	      // getArticles()(dispatch) 
 	    });
 	  };
 	};
@@ -24378,6 +24084,7 @@
 	exports.newPost = newPost;
 	exports.editPost = editPost;
 	exports.addComment = addComment;
+	exports.editComment = editComment;
 
 /***/ },
 /* 208 */
@@ -24465,7 +24172,7 @@
 	      comments.map(function (_ref2) {
 	        var _id = _ref2._id;
 	        var text = _ref2.text;
-	        return _react2.default.createElement(_comments2.default, { key: _id, text: text, id: _id, editComment: editComment });
+	        return _react2.default.createElement(_comments2.default, { key: _id, text: text, commentId: _id, postId: id });
 	      })
 	    )
 	  );
@@ -24482,9 +24189,6 @@
 	  return {
 	    editPost: function editPost(content, id) {
 	      return (0, _postAction.editPost)(content, id)(dispatch);
-	    },
-	    editComment: function editComment(content, id) {
-	      return (0, _postAction.editComment)(content, id)(dispatch);
 	    },
 	    addComment: function addComment(text, id) {
 	      return (0, _postAction.addComment)(text, id)(dispatch);
@@ -24747,7 +24451,6 @@
 	var updateZipcode = function updateZipcode(zipcode) {
 	  return function (dispatch) {
 	    return (0, _resource.resource)('PUT', 'zipcode', { zipcode: zipcode }).then(function (r) {
-	      console.log(r);
 	      dispatch({ type: 'ZIPCODE', zipcode: zipcode });
 	    });
 	  };
@@ -24934,7 +24637,7 @@
 	                        'p',
 	                        null,
 	                        'Password ',
-	                        _react2.default.createElement('input', { type: 'password', id: 'password', name: 'password', required: '', pattern: '.{6,}', maxLength: '20', placeholder: 'min 6 char, max 20 char', ref: function ref(node) {
+	                        _react2.default.createElement('input', { type: 'password', id: 'password', name: 'password', required: '', pattern: '.{6,}', maxLength: '30', placeholder: 'min 6 char, max 30 char', ref: function ref(node) {
 	                                return password = node;
 	                            } })
 	                    ),
@@ -25630,14 +25333,15 @@
 	// one post div generated for each article
 	var Comment = exports.Comment = function Comment(_ref) {
 	  var text = _ref.text;
-	  var id = _ref.id;
+	  var commentId = _ref.commentId;
+	  var postId = _ref.postId;
 	  var editComment = _ref.editComment;
 	  var author = _ref.author;
 	
 	  var content = void 0;
 	
-	  var _editComment = function _editComment(id) {
-	    editComment(content.innerHTML, id);
+	  var _editComment = function _editComment(postId, commentId) {
+	    editComment(content.innerHTML, postId, commentId);
 	  };
 	
 	  return _react2.default.createElement(
@@ -25657,26 +25361,78 @@
 	        'div',
 	        null,
 	        _react2.default.createElement('input', { type: 'button', value: 'Edit', id: 'leftComment', onClick: function onClick() {
-	            _editComment(id);
+	            _editComment(postId, commentId);
 	          } })
 	      )
 	    )
 	  );
 	};
 	
-	// export const Comment = ({ }) => (
-	//       <div>
-	//         <input type="button" value="HELLLLLLO" id="left" /> 
-	//       </div>
-	// )
-	
 	exports.default = (0, _reactRedux.connect)(null, function (dispatch) {
 	  return {
-	    editComment: function editComment(content, id) {
-	      return (0, _postAction.editComment)(content, id)(dispatch);
+	    editComment: function editComment(text, postId, commentId) {
+	      return (0, _postAction.editComment)(text, postId, commentId)(dispatch);
 	    }
 	  };
 	})(Comment);
+
+/***/ },
+/* 225 */,
+/* 226 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.deleteFriend = exports.addFriend = exports.updateHeadline = undefined;
+	
+	var _resource = __webpack_require__(202);
+	
+	var _dataAction = __webpack_require__(205);
+	
+	//resource called to 'put' headline into database
+	var updateHeadline = function updateHeadline(headline) {
+	  return function (dispatch) {
+	    return (0, _resource.resource)('PUT', 'headline', { headline: headline }).then(function (r) {
+	      dispatch({ type: 'UPDATE_HEADLINE', headline: headline });
+	    });
+	  };
+	};
+	
+	var addFriend = function addFriend(newFriend) {
+	  return function (dispatch) {
+	    var friendList = '';
+	    (0, _resource.resource)('PUT', 'following/' + newFriend).then(function (r) {
+	      friendList = r.following.toString();
+	      return (0, _resource.resource)('GET', 'headlines/' + friendList);
+	    }).then(function (r) {
+	      dispatch({ type: 'FRIEND', friends: r.headlines });
+	    });
+	  };
+	};
+	
+	var deleteFriend = function deleteFriend(deleted) {
+	  return function (dispatch) {
+	    var friendList = '';
+	    (0, _resource.resource)('DELETE', 'following/' + deleted).then(function (r) {
+	      friendList = r.following.toString();
+	      return (0, _resource.resource)('GET', 'headlines/' + friendList);
+	    }).then(function (r) {
+	      //if friend list is empty, update state with an empty friend list (otherwise, /headlines will send back logged in user)
+	      if (friendList.length === 0) {
+	        dispatch({ type: 'FRIEND', friends: [] });
+	      } else {
+	        dispatch({ type: 'FRIEND', friends: r.headlines });
+	      }
+	    });
+	  };
+	};
+	
+	exports.updateHeadline = updateHeadline;
+	exports.addFriend = addFriend;
+	exports.deleteFriend = deleteFriend;
 
 /***/ }
 /******/ ]);

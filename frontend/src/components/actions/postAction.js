@@ -14,7 +14,6 @@ const addComment = ( message, postId ) => (dispatch) => {
   resource('PUT', 'articles/' + postId, { text: message, commentId: -1 })
   .then ( r=> {
     dispatch( { type: 'ARTICLES', articles: r.articles } )
-    // getArticles()(dispatch) 
   })
 }
 
@@ -22,8 +21,7 @@ const editComment = ( message, postId, commentId ) => (dispatch) => {
   resource('PUT', 'articles/' + postId, { text: message, commentId: commentId })
   .then ( r=> {
     dispatch( { type: 'ARTICLES', articles: r.articles } )
-    // getArticles()(dispatch) 
   })
 }
 
-export { newPost, editPost, addComment }
+export { newPost, editPost, addComment, editComment }

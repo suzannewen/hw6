@@ -44,7 +44,6 @@ const getAvatar = () => (dispatch) => {
 const getArticles = () => (dispatch) => {
       return resource('GET', 'articles') //needs to add showComments boolean to each object
       .then ( r5 => {
-        console.log(r5)
         dispatch( { type: 'ARTICLES', articles: r5.articles } )
       } )
 }

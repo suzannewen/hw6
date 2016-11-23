@@ -1,7 +1,7 @@
 import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
 
-import { deleteFriend } from './headlineAction'
+import { deleteFriend } from '../actions/mainAction'
 
 // generated depending on how many friends you have
 export const Friend = ({ name, headline, deleteFriend }) => (

@@ -1,13 +1,9 @@
-const articles = [ {id: 0, text: 'test1' }, {id: 1, text: 'test2' }, {id: 3, text: 'test3' } ]
-var nextID = 4
-
 const Article = require('../model').Article
 const Profile = require('../model').Profile
 const Comment = require('../model').Comment
  
 const postArticle = (req, res) => {
   const newArticle = new Article({ 
-      // id: nextID++,
       author: req.username,
       img: '',
       date: new Date(),
@@ -18,27 +14,27 @@ const postArticle = (req, res) => {
     newArticle.save( (err) => {
       if (err) {
         console.log(err)
-      } else {
-        console.log('saved article')
-      }
+      } 
     })
 
   res.send({ articles: newArticle })
 }
 
 const getArticles = (req, res) => {
-    if (!req.params.id) { //gets all articles in DB
+    //if no specific id, get all of the articles
+    if (!req.params.id) {
       Article
         .find( { } )
         .exec( (err, allArticles) => {
             return res.send({ articles: allArticles })
         })
     }
-    else if ( typeof req.params.id === "string" ) { //gets all articles of a username, username inputted as id param
+
+    //gets all articles of a username, username inputted as id param
+    else if ( typeof req.params.id === "string" ) {
       Article
         .find( { username: req.params.id } )
         .exec( (err, foundArticles) => {
-          console.log(foundArticles)
             return res.send({ articles: foundArticles })
         })
     }
@@ -46,7 +42,8 @@ const getArticles = (req, res) => {
 
 // If commentId is supplied, then update the requested comment on the article
 const updateArticle = (req, res) => {
-    if (!req.body.commentId) { // Update the article :id with a new text if commentId not supplied.
+  // Update the article :id with a new text if commentId not supplied.
+    if (!req.body.commentId) {
       Article
         .findOneAndUpdate( { _id: req.params.id }, { text: req.body.text } )
         .exec ( (err, updatedArticle) => {
@@ -58,7 +55,9 @@ const updateArticle = (req, res) => {
               })
         } )
     }
-    else if (req.body.commentId === -1 ){ //If commentId is -1, then a new comment is posted with the text message.
+
+    //If commentId is -1, then a new comment is posted with the text message.
+    else if (req.body.commentId === -1 ){
       Article
         .findOne( { _id: req.params.id } )
         .exec ( (err, foundArticle) => {
@@ -69,7 +68,6 @@ const updateArticle = (req, res) => {
             date: new Date()
           })
           comments = comments.concat( [ newComment ] )
-          console.log(comments)
           Article
            .findOneAndUpdate( { _id: req.params.id }, { comments: comments } )
            .exec ((err, updatedArticle) => {
@@ -81,14 +79,33 @@ const updateArticle = (req, res) => {
            })
         } )
     }
-  //   const articleIndex = articles.find(function(article) {
-  //       console.log(req.params.id )
-  //       return article.id == req.params.id
-  //   })
 
-  //   console.log("update")
+    //if commentId is valid, edit that comment on the post
+    else {
+      Article
+        .findOne( { _id: req.params.id } )
+        .exec ( (err, foundArticle) => {
+          let comments = foundArticle.comments
+          //find comment in array and modify text field
+          const index = comments.findIndex( (comment) => {
+            if(comment._id.toString() === req.body.commentId) {
+              return comment
+            }
+          })
+          comments[index].text = req.body.text
 
-  // res.send( { articles: [ {id: 0, text: 'test1' }, {id: 1, text: 'test2' }, {id: 3, text: 'test3' } ] })
+          Article
+           .findOneAndUpdate( { _id: req.params.id }, { comments: comments } )
+           .exec ((err, updatedArticle) => {
+             Article
+              .find( {} )
+              .exec ((err, allArticles) => {
+                return res.send( { articles: allArticles })
+              })
+           })
+        } )
+    }
+
 }
 
 module.exports = (app) => {

@@ -1,4 +1,3 @@
-const uploadImage = require('./upload')
 const User = require('../model').User
 const Profile = require('../model').Profile
 
@@ -26,7 +25,6 @@ const updateHeadline = (req, res) => {
   Profile
     .findOneAndUpdate( { username: req.username }, { status: req.body.headline } )
     .exec( (err, foundUser) => {
-        console.log(foundUser)
         res.send( { username: req.username, headline: req.body.headline } )
     })
 }
@@ -39,7 +37,7 @@ const getEmail = (req, res) => {
   else {
     user = req.user
   }
-  // const users = req.params.users ? req.params.users.split(',') : [req.user]
+
   Profile
     .findOne( { username: user } )
     .exec( (err, foundUser) => {
@@ -56,11 +54,9 @@ const updateEmail = (req, res) => {
 }
 
 const getDOB = (req, res) => {
-  // const dob = new Date()
   Profile
     .findOne( { username: req.username } )
     .exec( (err, foundUser) => {
-      console.log('dob =' + foundUser.dob.getMilliseconds())
         res.send( { username: req.username, dob: foundUser.dob.getMilliseconds() } )
     })
 }
@@ -82,7 +78,6 @@ const updateZipcode = (req, res) => {
 }
 
 const getAvatars = (req, res) => {
-  // console.log(req.params.user)
   let user = ''
   if (!req.params.user) {
     user = req.username
@@ -90,7 +85,7 @@ const getAvatars = (req, res) => {
   else {
     user = req.params.user
   }
-  // const users = req.params.users ? req.params.users.split(',') : [req.user]
+
   Profile
     .findOne( { username: user } )
     .exec( (err, foundUser) => {
@@ -99,13 +94,7 @@ const getAvatars = (req, res) => {
 }
 
 const uploadAvatar = (req, res) => {
-  console.log(req)
-     // create an image tag from the cloudinary upload
-   const image = cloudinary.image(req.fileid, {
-       format: "png", width: 100, height: 130, crop: "fill" 
-   })
-   // create a response to the user's upload
-   res.send(`Uploaded: ${req.fileurl}<br/><a href="${req.fileurl}">${image}</a>`);
+   res.send({ username: req.username, avatar: 'http://img.wennermedia.com/article-leads-vertical-300/1250529817_barack_obama_290x402.jpg' })
 }
 
 module.exports = (app) => {
@@ -117,5 +106,5 @@ module.exports = (app) => {
     app.get('/zipcode/:user?', getZipcode)
     app.put('/zipcode', updateZipcode)
     app.get('/avatars/:user?', getAvatars)
-    app.post('/avatar', uploadImage('new avatar'), uploadAvatar)
+    app.put('/avatar', uploadAvatar)
 }

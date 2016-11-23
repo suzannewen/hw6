@@ -4,7 +4,6 @@ import { fetchData } from '../actions/dataAction'
 const updateZipcode = ( zipcode ) => (dispatch) =>
   resource('PUT', 'zipcode', { zipcode: zipcode })
   .then( r => {
-      console.log(r)
       dispatch({ type: 'ZIPCODE', zipcode: zipcode})
   })   
 

@@ -29,7 +29,8 @@ const deleteFriend = ( deleted ) =>  (dispatch) => {
       return resource('GET', 'headlines/' + friendList) 
     })
     .then( r=> {
-      if (friendList.length === 0) { //if friend list is empty, update state with an empty friend list (otherwise, /headlines will send back logged in user)
+      //if friend list is empty, update state with an empty friend list (otherwise, /headlines will send back logged in user)
+      if (friendList.length === 0) {
         dispatch ( { type: 'FRIEND', friends: [] })
       }
       else {

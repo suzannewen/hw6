@@ -1,7 +1,7 @@
 import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
 import { Friend } from './friend'
-import { updateHeadline, addFriend, deleteFriend } from './headlineAction'
+import { updateHeadline, addFriend, deleteFriend } from '../actions/mainAction'
 
 // contains user information as well as info about friends, generated based on array
 export const MainBar = ({ username, headline, friends, avatar, updateHeadline, addFriend, deleteFriend }) => {

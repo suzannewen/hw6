@@ -19,7 +19,8 @@ const addFriend = (req, res) => {
   const newFriend = req.params.user
   let currentFollow = []
 
-  if (newFriend === req.username) { //prevents user from adding themselves as a friend
+  //prevents user from adding themselves as a friend
+  if (newFriend === req.username) {
     return res.status(404).send( 'You cannot add yourself as a friend.' )
   }
 

@@ -22,7 +22,7 @@ export const Register = ({ authRegister }) => {
             <p>Phone Number <input type="tel" name="phone" required="" pattern="^\d{3}-\d{3}-\d{4}" placeholder="### - ### - ####" /></p>
             <p>Date of Birth (must be at least 18 years of age)<input type="date" id="birthdate" name="birth" required="" ref={ (node) => dob = node }/></p>
             <p>Zipcode <input type="tel" name="zipcode" required="" pattern="[0-9]{5}" placeholder="5 digits" ref={ (node) => zipcode = node }/></p>
-            <p>Password <input type="password" id="password" name="password" required="" pattern=".{6,}" maxLength="20" placeholder="min 6 char, max 20 char" ref={ (node) => password = node }/></p>
+            <p>Password <input type="password" id="password" name="password" required="" pattern=".{6,}" maxLength="30" placeholder="min 6 char, max 30 char" ref={ (node) => password = node }/></p>
             <p>Password Confirmation <input type="password" id="confirmation" name="confirmation" required="" placeholder="must match above password" /> <i></i></p>
             <input type="hidden" id="timestamp" name="time" />
             <input type="submit" value="Make Account" onClick={_authRegister} />
