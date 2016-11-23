@@ -1,6 +1,4 @@
 node_modules/
-dist/
 .babelrc
 .eslintrc
 mocha.opts
-src/
