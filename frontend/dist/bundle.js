@@ -54,23 +54,23 @@
 	
 	var _reactRedux = __webpack_require__(172);
 	
-	var _reduxLogger = __webpack_require__(224);
+	var _reduxLogger = __webpack_require__(195);
 	
 	var _reduxLogger2 = _interopRequireDefault(_reduxLogger);
 	
 	var _redux = __webpack_require__(179);
 	
-	var _reducer = __webpack_require__(195);
+	var _reducer = __webpack_require__(196);
 	
 	var _reducer2 = _interopRequireDefault(_reducer);
 	
-	var _app = __webpack_require__(196);
+	var _app = __webpack_require__(197);
 	
 	var _app2 = _interopRequireDefault(_app);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	__webpack_require__(220);
+	__webpack_require__(221);
 	
 	var logger = (0, _reduxLogger2.default)();
 	var store = (0, _redux.createStore)(_reducer2.default, (0, _redux.applyMiddleware)(logger));
@@ -23027,6 +23027,239 @@
 /* 195 */
 /***/ function(module, exports) {
 
+	"use strict";
+	
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+	
+	function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
+	
+	var repeat = function repeat(str, times) {
+	  return new Array(times + 1).join(str);
+	};
+	var pad = function pad(num, maxLength) {
+	  return repeat("0", maxLength - num.toString().length) + num;
+	};
+	var formatTime = function formatTime(time) {
+	  return "@ " + pad(time.getHours(), 2) + ":" + pad(time.getMinutes(), 2) + ":" + pad(time.getSeconds(), 2) + "." + pad(time.getMilliseconds(), 3);
+	};
+	
+	// Use the new performance api to get better precision if available
+	var timer = typeof performance !== "undefined" && typeof performance.now === "function" ? performance : Date;
+	
+	/**
+	 * parse the level option of createLogger
+	 *
+	 * @property {string | function | object} level - console[level]
+	 * @property {object} action
+	 * @property {array} payload
+	 * @property {string} type
+	 */
+	
+	function getLogLevel(level, action, payload, type) {
+	  switch (typeof level === "undefined" ? "undefined" : _typeof(level)) {
+	    case "object":
+	      return typeof level[type] === "function" ? level[type].apply(level, _toConsumableArray(payload)) : level[type];
+	    case "function":
+	      return level(action);
+	    default:
+	      return level;
+	  }
+	}
+	
+	/**
+	 * Creates logger with followed options
+	 *
+	 * @namespace
+	 * @property {object} options - options for logger
+	 * @property {string | function | object} options.level - console[level]
+	 * @property {boolean} options.duration - print duration of each action?
+	 * @property {boolean} options.timestamp - print timestamp with each action?
+	 * @property {object} options.colors - custom colors
+	 * @property {object} options.logger - implementation of the `console` API
+	 * @property {boolean} options.logErrors - should errors in action execution be caught, logged, and re-thrown?
+	 * @property {boolean} options.collapsed - is group collapsed?
+	 * @property {boolean} options.predicate - condition which resolves logger behavior
+	 * @property {function} options.stateTransformer - transform state before print
+	 * @property {function} options.actionTransformer - transform action before print
+	 * @property {function} options.errorTransformer - transform error before print
+	 */
+	
+	function createLogger() {
+	  var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+	  var _options$level = options.level;
+	  var level = _options$level === undefined ? "log" : _options$level;
+	  var _options$logger = options.logger;
+	  var logger = _options$logger === undefined ? console : _options$logger;
+	  var _options$logErrors = options.logErrors;
+	  var logErrors = _options$logErrors === undefined ? true : _options$logErrors;
+	  var collapsed = options.collapsed;
+	  var predicate = options.predicate;
+	  var _options$duration = options.duration;
+	  var duration = _options$duration === undefined ? false : _options$duration;
+	  var _options$timestamp = options.timestamp;
+	  var timestamp = _options$timestamp === undefined ? true : _options$timestamp;
+	  var transformer = options.transformer;
+	  var _options$stateTransfo = options.stateTransformer;
+	  var // deprecated
+	  stateTransformer = _options$stateTransfo === undefined ? function (state) {
+	    return state;
+	  } : _options$stateTransfo;
+	  var _options$actionTransf = options.actionTransformer;
+	  var actionTransformer = _options$actionTransf === undefined ? function (actn) {
+	    return actn;
+	  } : _options$actionTransf;
+	  var _options$errorTransfo = options.errorTransformer;
+	  var errorTransformer = _options$errorTransfo === undefined ? function (error) {
+	    return error;
+	  } : _options$errorTransfo;
+	  var _options$colors = options.colors;
+	  var colors = _options$colors === undefined ? {
+	    title: function title() {
+	      return "#000000";
+	    },
+	    prevState: function prevState() {
+	      return "#9E9E9E";
+	    },
+	    action: function action() {
+	      return "#03A9F4";
+	    },
+	    nextState: function nextState() {
+	      return "#4CAF50";
+	    },
+	    error: function error() {
+	      return "#F20404";
+	    }
+	  } : _options$colors;
+	
+	  // exit if console undefined
+	
+	  if (typeof logger === "undefined") {
+	    return function () {
+	      return function (next) {
+	        return function (action) {
+	          return next(action);
+	        };
+	      };
+	    };
+	  }
+	
+	  if (transformer) {
+	    console.error("Option 'transformer' is deprecated, use stateTransformer instead");
+	  }
+	
+	  var logBuffer = [];
+	  function printBuffer() {
+	    logBuffer.forEach(function (logEntry, key) {
+	      var started = logEntry.started;
+	      var startedTime = logEntry.startedTime;
+	      var action = logEntry.action;
+	      var prevState = logEntry.prevState;
+	      var error = logEntry.error;
+	      var took = logEntry.took;
+	      var nextState = logEntry.nextState;
+	
+	      var nextEntry = logBuffer[key + 1];
+	      if (nextEntry) {
+	        nextState = nextEntry.prevState;
+	        took = nextEntry.started - started;
+	      }
+	      // message
+	      var formattedAction = actionTransformer(action);
+	      var isCollapsed = typeof collapsed === "function" ? collapsed(function () {
+	        return nextState;
+	      }, action) : collapsed;
+	
+	      var formattedTime = formatTime(startedTime);
+	      var titleCSS = colors.title ? "color: " + colors.title(formattedAction) + ";" : null;
+	      var title = "action " + (timestamp ? formattedTime : "") + " " + formattedAction.type + " " + (duration ? "(in " + took.toFixed(2) + " ms)" : "");
+	
+	      // render
+	      try {
+	        if (isCollapsed) {
+	          if (colors.title) logger.groupCollapsed("%c " + title, titleCSS);else logger.groupCollapsed(title);
+	        } else {
+	          if (colors.title) logger.group("%c " + title, titleCSS);else logger.group(title);
+	        }
+	      } catch (e) {
+	        logger.log(title);
+	      }
+	
+	      var prevStateLevel = getLogLevel(level, formattedAction, [prevState], "prevState");
+	      var actionLevel = getLogLevel(level, formattedAction, [formattedAction], "action");
+	      var errorLevel = getLogLevel(level, formattedAction, [error, prevState], "error");
+	      var nextStateLevel = getLogLevel(level, formattedAction, [nextState], "nextState");
+	
+	      if (prevStateLevel) {
+	        if (colors.prevState) logger[prevStateLevel]("%c prev state", "color: " + colors.prevState(prevState) + "; font-weight: bold", prevState);else logger[prevStateLevel]("prev state", prevState);
+	      }
+	
+	      if (actionLevel) {
+	        if (colors.action) logger[actionLevel]("%c action", "color: " + colors.action(formattedAction) + "; font-weight: bold", formattedAction);else logger[actionLevel]("action", formattedAction);
+	      }
+	
+	      if (error && errorLevel) {
+	        if (colors.error) logger[errorLevel]("%c error", "color: " + colors.error(error, prevState) + "; font-weight: bold", error);else logger[errorLevel]("error", error);
+	      }
+	
+	      if (nextStateLevel) {
+	        if (colors.nextState) logger[nextStateLevel]("%c next state", "color: " + colors.nextState(nextState) + "; font-weight: bold", nextState);else logger[nextStateLevel]("next state", nextState);
+	      }
+	
+	      try {
+	        logger.groupEnd();
+	      } catch (e) {
+	        logger.log("—— log end ——");
+	      }
+	    });
+	    logBuffer.length = 0;
+	  }
+	
+	  return function (_ref) {
+	    var getState = _ref.getState;
+	    return function (next) {
+	      return function (action) {
+	        // exit early if predicate function returns false
+	        if (typeof predicate === "function" && !predicate(getState, action)) {
+	          return next(action);
+	        }
+	
+	        var logEntry = {};
+	        logBuffer.push(logEntry);
+	
+	        logEntry.started = timer.now();
+	        logEntry.startedTime = new Date();
+	        logEntry.prevState = stateTransformer(getState());
+	        logEntry.action = action;
+	
+	        var returnedValue = undefined;
+	        if (logErrors) {
+	          try {
+	            returnedValue = next(action);
+	          } catch (e) {
+	            logEntry.error = errorTransformer(e);
+	          }
+	        } else {
+	          returnedValue = next(action);
+	        }
+	
+	        logEntry.took = timer.now() - logEntry.started;
+	        logEntry.nextState = stateTransformer(getState());
+	
+	        printBuffer();
+	
+	        if (logEntry.error) throw logEntry.error;
+	        return returnedValue;
+	      };
+	    };
+	  };
+	}
+	
+	module.exports = createLogger;
+
+/***/ },
+/* 196 */
+/***/ function(module, exports) {
+
 	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
@@ -23078,7 +23311,7 @@
 	exports.default = Reducer;
 
 /***/ },
-/* 196 */
+/* 197 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -23094,23 +23327,23 @@
 	
 	var _reactRedux = __webpack_require__(172);
 	
-	var _main = __webpack_require__(197);
+	var _main = __webpack_require__(198);
 	
 	var _main2 = _interopRequireDefault(_main);
 	
-	var _profile = __webpack_require__(209);
+	var _profile = __webpack_require__(210);
 	
 	var _profile2 = _interopRequireDefault(_profile);
 	
-	var _landing = __webpack_require__(213);
+	var _landing = __webpack_require__(214);
 	
 	var _landing2 = _interopRequireDefault(_landing);
 	
-	var _header = __webpack_require__(217);
+	var _header = __webpack_require__(218);
 	
 	var _header2 = _interopRequireDefault(_header);
 	
-	var _footer = __webpack_require__(219);
+	var _footer = __webpack_require__(220);
 	
 	var _footer2 = _interopRequireDefault(_footer);
 	
@@ -23163,7 +23396,7 @@
 	})(App);
 
 /***/ },
-/* 197 */
+/* 198 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -23179,15 +23412,15 @@
 	
 	var _reactRedux = __webpack_require__(172);
 	
-	var _mainBar = __webpack_require__(198);
+	var _mainBar = __webpack_require__(199);
 	
 	var _mainBar2 = _interopRequireDefault(_mainBar);
 	
-	var _newPost = __webpack_require__(205);
+	var _newPost = __webpack_require__(206);
 	
 	var _newPost2 = _interopRequireDefault(_newPost);
 	
-	var _posts = __webpack_require__(207);
+	var _posts = __webpack_require__(208);
 	
 	var _posts2 = _interopRequireDefault(_posts);
 	
@@ -23232,7 +23465,7 @@
 	}, null)(Main);
 
 /***/ },
-/* 198 */
+/* 199 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -23248,9 +23481,9 @@
 	
 	var _reactRedux = __webpack_require__(172);
 	
-	var _friend = __webpack_require__(199);
+	var _friend = __webpack_require__(200);
 	
-	var _mainAction = __webpack_require__(200);
+	var _mainAction = __webpack_require__(201);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -23355,7 +23588,7 @@
 	})(MainBar);
 
 /***/ },
-/* 199 */
+/* 200 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -23371,7 +23604,7 @@
 	
 	var _reactRedux = __webpack_require__(172);
 	
-	var _mainAction = __webpack_require__(200);
+	var _mainAction = __webpack_require__(201);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -23407,7 +23640,7 @@
 	};
 
 /***/ },
-/* 200 */
+/* 201 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -23417,9 +23650,9 @@
 	});
 	exports.deleteFriend = exports.addFriend = exports.updateHeadline = undefined;
 	
-	var _resource = __webpack_require__(201);
+	var _resource = __webpack_require__(202);
 	
-	var _dataAction = __webpack_require__(204);
+	var _dataAction = __webpack_require__(205);
 	
 	//resource called to 'put' headline into database
 	var updateHeadline = function updateHeadline(headline) {
@@ -23464,7 +23697,7 @@
 	exports.deleteFriend = deleteFriend;
 
 /***/ },
-/* 201 */
+/* 202 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -23474,7 +23707,7 @@
 	});
 	exports.resource = exports.url = undefined;
 	
-	var _isomorphicFetch = __webpack_require__(202);
+	var _isomorphicFetch = __webpack_require__(203);
 	
 	var _isomorphicFetch2 = _interopRequireDefault(_isomorphicFetch);
 	
@@ -23509,19 +23742,19 @@
 	exports.resource = resource;
 
 /***/ },
-/* 202 */
+/* 203 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// the whatwg-fetch polyfill installs the fetch() function
 	// on the global object (window or self)
 	//
 	// Return that as the export for use in Webpack, Browserify etc.
-	__webpack_require__(203);
+	__webpack_require__(204);
 	module.exports = self.fetch.bind(self);
 
 
 /***/ },
-/* 203 */
+/* 204 */
 /***/ function(module, exports) {
 
 	(function(self) {
@@ -23960,75 +24193,74 @@
 
 
 /***/ },
-/* 204 */
+/* 205 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
-	  value: true
+	      value: true
 	});
 	exports.getFriends = exports.getProfile = exports.getArticles = exports.fetchData = undefined;
 	
-	var _resource = __webpack_require__(201);
+	var _resource = __webpack_require__(202);
 	
 	var _reactRedux = __webpack_require__(172);
 	
 	//separate function called for each chunk of data needed 
 	function fetchData(username, dispatch) {
-	  getHeadline(dispatch).then(getFriends(dispatch)).then(getAvatar()(dispatch)).then(getArticles(username)(dispatch)).then(getProfile()(dispatch));
+	      getHeadline(dispatch).then(getFriends(dispatch)).then(getAvatar()(dispatch)).then(getArticles(username)(dispatch)).then(getProfile()(dispatch));
 	}
 	
 	function getHeadline(dispatch) {
-	  return (0, _resource.resource)('GET', 'headlines').then(function (r1) {
-	    dispatch({ type: 'HEADLINE', username: r1.headlines[0].username, headline: r1.headlines[0].headline });
-	  });
+	      return (0, _resource.resource)('GET', 'headlines').then(function (r1) {
+	            dispatch({ type: 'HEADLINE', username: r1.headlines[0].username, headline: r1.headlines[0].headline });
+	      });
 	}
 	
 	function getFriends(dispatch) {
-	  var friends = '';
-	  (0, _resource.resource)('GET', 'following').then(function (r2) {
-	    friends = r2.following.toString();
-	    return (0, _resource.resource)('GET', 'headlines/' + friends);
-	  }).then(function (r3) {
-	    if (friends.length === 0) {
-	      //if friend list is empty, update state with an empty friend list (otherwise, /headlines will send back logged in user)
-	      dispatch({ type: 'FRIEND', friends: [] });
-	    } else {
-	      dispatch({ type: 'FRIEND', friends: r3.headlines });
-	    }
-	  });
+	      var friends = '';
+	      (0, _resource.resource)('GET', 'following').then(function (r2) {
+	            friends = r2.following.toString();
+	            return (0, _resource.resource)('GET', 'headlines/' + friends);
+	      }).then(function (r3) {
+	            if (friends.length === 0) {
+	                  //if friend list is empty, update state with an empty friend list (otherwise, /headlines will send back logged in user)
+	                  dispatch({ type: 'FRIEND', friends: [] });
+	            } else {
+	                  dispatch({ type: 'FRIEND', friends: r3.headlines });
+	            }
+	      });
 	}
 	
 	var getAvatar = function getAvatar() {
-	  return function (dispatch) {
-	    return (0, _resource.resource)('GET', 'avatars').then(function (r4) {
-	      dispatch({ type: 'AVATAR', avatar: r4.avatar });
-	    });
-	  };
+	      return function (dispatch) {
+	            return (0, _resource.resource)('GET', 'avatars').then(function (r4) {
+	                  dispatch({ type: 'AVATAR', avatar: r4.avatar });
+	            });
+	      };
 	};
 	
 	//top 10 posts
 	var getArticles = function getArticles(username) {
-	  return function (dispatch) {
-	
-	    return (0, _resource.resource)('GET', 'articles') //needs to add showComments boolean to each object
-	    .then(function (r5) {
-	      dispatch({ type: 'ARTICLES', articles: r5.articles });
-	    });
-	  };
+	      return function (dispatch) {
+	            return (0, _resource.resource)('GET', 'articles') //needs to add showComments boolean to each object
+	            .then(function (r5) {
+	                  dispatch({ type: 'ARTICLES', articles: r5.articles });
+	            });
+	      };
 	};
 	
 	var getProfile = function getProfile() {
-	  return function (dispatch) {
-	    return (0, _resource.resource)('GET', 'email').then(function (r6) {
-	      return dispatch({ type: 'EMAIL', email: r6.email });
-	    }).then(function (r7) {
-	      return (0, _resource.resource)('GET', 'zipcode');
-	    }).then(function (r7) {
-	      return dispatch({ type: 'ZIPCODE', zipcode: r7.zipcode });
-	    });
-	  };
+	      return function (dispatch) {
+	            return (0, _resource.resource)('GET', 'email').then(function (r6) {
+	                  return dispatch({ type: 'EMAIL', email: r6.email });
+	            }).then(function (r7) {
+	                  return (0, _resource.resource)('GET', 'zipcode');
+	            }).then(function (r7) {
+	                  return dispatch({ type: 'ZIPCODE', zipcode: r7.zipcode });
+	            });
+	      };
 	};
 	
 	exports.default = (0, _reactRedux.connect)()(fetchData);
@@ -24038,7 +24270,7 @@
 	exports.getFriends = getFriends;
 
 /***/ },
-/* 205 */
+/* 206 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -24054,7 +24286,7 @@
 	
 	var _reactRedux = __webpack_require__(172);
 	
-	var _postAction = __webpack_require__(206);
+	var _postAction = __webpack_require__(207);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -24098,7 +24330,7 @@
 	})(NewPost);
 
 /***/ },
-/* 206 */
+/* 207 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -24108,9 +24340,9 @@
 	});
 	exports.editComment = exports.addComment = exports.editPost = exports.newPost = undefined;
 	
-	var _resource = __webpack_require__(201);
+	var _resource = __webpack_require__(202);
 	
-	var _dataAction = __webpack_require__(204);
+	var _dataAction = __webpack_require__(205);
 	
 	var newPost = function newPost(message) {
 	  return function (dispatch) {
@@ -24146,7 +24378,7 @@
 	exports.editComment = editComment;
 
 /***/ },
-/* 207 */
+/* 208 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -24162,9 +24394,9 @@
 	
 	var _reactRedux = __webpack_require__(172);
 	
-	var _postAction = __webpack_require__(206);
+	var _postAction = __webpack_require__(207);
 	
-	var _comments = __webpack_require__(208);
+	var _comments = __webpack_require__(209);
 	
 	var _comments2 = _interopRequireDefault(_comments);
 	
@@ -24260,7 +24492,7 @@
 	})(Posts);
 
 /***/ },
-/* 208 */
+/* 209 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -24276,7 +24508,7 @@
 	
 	var _reactRedux = __webpack_require__(172);
 	
-	var _postAction = __webpack_require__(206);
+	var _postAction = __webpack_require__(207);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -24329,7 +24561,7 @@
 	})(Comment);
 
 /***/ },
-/* 209 */
+/* 210 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -24345,11 +24577,11 @@
 	
 	var _reactRedux = __webpack_require__(172);
 	
-	var _info = __webpack_require__(210);
+	var _info = __webpack_require__(211);
 	
 	var _info2 = _interopRequireDefault(_info);
 	
-	var _updateInfo = __webpack_require__(211);
+	var _updateInfo = __webpack_require__(213);
 	
 	var _updateInfo2 = _interopRequireDefault(_updateInfo);
 	
@@ -24376,7 +24608,7 @@
 	})(Profile);
 
 /***/ },
-/* 210 */
+/* 211 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -24392,6 +24624,8 @@
 	
 	var _reactRedux = __webpack_require__(172);
 	
+	var _updateAction = __webpack_require__(212);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	//displays info for users to view
@@ -24401,7 +24635,16 @@
 	    var avatar = _ref.avatar;
 	    var email = _ref.email;
 	    var zipcode = _ref.zipcode;
+	    var updateAvatar = _ref.updateAvatar;
 	
+	
+	    var uploadAvatar = function uploadAvatar(e) {
+	        var file = e.target.files[0];
+	        var fd = new FormData();
+	        fd.append('image', file);
+	
+	        updateAvatar(fd);
+	    };
 	
 	    return _react2.default.createElement(
 	        'div',
@@ -24414,12 +24657,9 @@
 	                { className: 'profilePic' },
 	                _react2.default.createElement('img', { src: avatar })
 	            ),
-	            _react2.default.createElement(
-	                'form',
-	                { action: 'avatar', method: 'post' },
-	                _react2.default.createElement('input', { type: 'file', name: 'pic', accept: 'image/*' }),
-	                _react2.default.createElement('input', { type: 'submit' })
-	            ),
+	            _react2.default.createElement('input', { type: 'file', accept: 'image/*', onChange: function onChange(e) {
+	                    return uploadAvatar(e);
+	                } }),
 	            _react2.default.createElement(
 	                'div',
 	                { className: 'info' },
@@ -24466,10 +24706,77 @@
 	        email: state.email,
 	        zipcode: state.zipcode
 	    };
+	}, function (dispatch) {
+	    return {
+	        updateAvatar: function updateAvatar(fd) {
+	            return (0, _updateAction.updateAvatar)(fd)(dispatch);
+	        } };
 	})(Info);
 
 /***/ },
-/* 211 */
+/* 212 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.updateAvatar = exports.updatePW = exports.updateEmail = exports.updateZipcode = undefined;
+	
+	var _resource = __webpack_require__(202);
+	
+	var _dataAction = __webpack_require__(205);
+	
+	var updateAvatar = function updateAvatar(fd) {
+	  return function (dispatch) {
+	    console.log(fd);
+	    var options = {
+	      method: 'POST',
+	      credentials: 'include',
+	      headers: {
+	        'Content-Type': 'application/json' },
+	      body: JSON.stringify(fd) };
+	
+	    fetch('http://localhost:3000/avatar', options).then(function (res) {
+	      return console.log(res);
+	    });
+	    // resource('PUT', 'avatar', fd)
+	    // .then( r => {
+	    //     dispatch({ type: 'AVATAR', avatar: r.url})
+	    // })   
+	  };
+	};
+	
+	var updateZipcode = function updateZipcode(zipcode) {
+	  return function (dispatch) {
+	    return (0, _resource.resource)('PUT', 'zipcode', { zipcode: zipcode }).then(function (r) {
+	      dispatch({ type: 'ZIPCODE', zipcode: zipcode });
+	    });
+	  };
+	};
+	
+	var updateEmail = function updateEmail(email) {
+	  return function (dispatch) {
+	    return (0, _resource.resource)('PUT', 'email', { email: email }).then(function (r) {
+	      dispatch({ type: 'EMAIL', email: email });
+	    });
+	  };
+	};
+	
+	var updatePW = function updatePW(password) {
+	  return function (dispatch) {
+	    return (0, _resource.resource)('PUT', 'password', { password: password }).then(dispatch({ type: 'PASSWORD', password: password })).catch();
+	  };
+	};
+	
+	exports.updateZipcode = updateZipcode;
+	exports.updateEmail = updateEmail;
+	exports.updatePW = updatePW;
+	exports.updateAvatar = updateAvatar;
+
+/***/ },
+/* 213 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -24566,48 +24873,7 @@
 	})(UpdateInfo);
 
 /***/ },
-/* 212 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.updatePW = exports.updateEmail = exports.updateZipcode = undefined;
-	
-	var _resource = __webpack_require__(201);
-	
-	var _dataAction = __webpack_require__(204);
-	
-	var updateZipcode = function updateZipcode(zipcode) {
-	  return function (dispatch) {
-	    return (0, _resource.resource)('PUT', 'zipcode', { zipcode: zipcode }).then(function (r) {
-	      dispatch({ type: 'ZIPCODE', zipcode: zipcode });
-	    });
-	  };
-	};
-	
-	var updateEmail = function updateEmail(email) {
-	  return function (dispatch) {
-	    return (0, _resource.resource)('PUT', 'email', { email: email }).then(function (r) {
-	      dispatch({ type: 'EMAIL', email: email });
-	    });
-	  };
-	};
-	
-	var updatePW = function updatePW(password) {
-	  return function (dispatch) {
-	    return (0, _resource.resource)('PUT', 'password', { password: password }).then(dispatch({ type: 'PASSWORD', password: password })).catch();
-	  };
-	};
-	
-	exports.updateZipcode = updateZipcode;
-	exports.updateEmail = updateEmail;
-	exports.updatePW = updatePW;
-
-/***/ },
-/* 213 */
+/* 214 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -24623,11 +24889,11 @@
 	
 	var _reactRedux = __webpack_require__(172);
 	
-	var _register = __webpack_require__(214);
+	var _register = __webpack_require__(215);
 	
 	var _register2 = _interopRequireDefault(_register);
 	
-	var _login = __webpack_require__(216);
+	var _login = __webpack_require__(217);
 	
 	var _login2 = _interopRequireDefault(_login);
 	
@@ -24671,7 +24937,7 @@
 	}, null)(Landing);
 
 /***/ },
-/* 214 */
+/* 215 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -24687,7 +24953,7 @@
 	
 	var _reactRedux = __webpack_require__(172);
 	
-	var _loginAction = __webpack_require__(215);
+	var _loginAction = __webpack_require__(216);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -24803,7 +25069,7 @@
 	})(Register);
 
 /***/ },
-/* 215 */
+/* 216 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -24813,9 +25079,9 @@
 	});
 	exports.logout = exports.login = exports.register = undefined;
 	
-	var _resource = __webpack_require__(201);
+	var _resource = __webpack_require__(202);
 	
-	var _dataAction = __webpack_require__(204);
+	var _dataAction = __webpack_require__(205);
 	
 	var register = function register(username, email, dob, zipcode, password) {
 	  return function (dispatch) {
@@ -24850,7 +25116,7 @@
 	exports.logout = logout;
 
 /***/ },
-/* 216 */
+/* 217 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -24866,9 +25132,9 @@
 	
 	var _reactRedux = __webpack_require__(172);
 	
-	var _resource = __webpack_require__(201);
+	var _resource = __webpack_require__(202);
 	
-	var _loginAction = __webpack_require__(215);
+	var _loginAction = __webpack_require__(216);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -24934,7 +25200,7 @@
 	})(Login);
 
 /***/ },
-/* 217 */
+/* 218 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -24950,11 +25216,11 @@
 	
 	var _reactRedux = __webpack_require__(172);
 	
-	var _resource = __webpack_require__(201);
+	var _resource = __webpack_require__(202);
 	
-	var _loginAction = __webpack_require__(215);
+	var _loginAction = __webpack_require__(216);
 	
-	var _navActions = __webpack_require__(218);
+	var _navActions = __webpack_require__(219);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -25029,7 +25295,7 @@
 	})(Header);
 
 /***/ },
-/* 218 */
+/* 219 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -25046,7 +25312,7 @@
 	exports.navigate = navigate;
 
 /***/ },
-/* 219 */
+/* 220 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -25094,16 +25360,16 @@
 	})(Footer);
 
 /***/ },
-/* 220 */
+/* 221 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 	
 	// load the styles
-	var content = __webpack_require__(221);
+	var content = __webpack_require__(222);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(223)(content, {});
+	var update = __webpack_require__(224)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
@@ -25120,10 +25386,10 @@
 	}
 
 /***/ },
-/* 221 */
+/* 222 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(222)();
+	exports = module.exports = __webpack_require__(223)();
 	// imports
 	
 	
@@ -25134,7 +25400,7 @@
 
 
 /***/ },
-/* 222 */
+/* 223 */
 /***/ function(module, exports) {
 
 	/*
@@ -25190,7 +25456,7 @@
 
 
 /***/ },
-/* 223 */
+/* 224 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
@@ -25440,239 +25706,6 @@
 			URL.revokeObjectURL(oldSrc);
 	}
 
-
-/***/ },
-/* 224 */
-/***/ function(module, exports) {
-
-	"use strict";
-	
-	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-	
-	function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
-	
-	var repeat = function repeat(str, times) {
-	  return new Array(times + 1).join(str);
-	};
-	var pad = function pad(num, maxLength) {
-	  return repeat("0", maxLength - num.toString().length) + num;
-	};
-	var formatTime = function formatTime(time) {
-	  return "@ " + pad(time.getHours(), 2) + ":" + pad(time.getMinutes(), 2) + ":" + pad(time.getSeconds(), 2) + "." + pad(time.getMilliseconds(), 3);
-	};
-	
-	// Use the new performance api to get better precision if available
-	var timer = typeof performance !== "undefined" && typeof performance.now === "function" ? performance : Date;
-	
-	/**
-	 * parse the level option of createLogger
-	 *
-	 * @property {string | function | object} level - console[level]
-	 * @property {object} action
-	 * @property {array} payload
-	 * @property {string} type
-	 */
-	
-	function getLogLevel(level, action, payload, type) {
-	  switch (typeof level === "undefined" ? "undefined" : _typeof(level)) {
-	    case "object":
-	      return typeof level[type] === "function" ? level[type].apply(level, _toConsumableArray(payload)) : level[type];
-	    case "function":
-	      return level(action);
-	    default:
-	      return level;
-	  }
-	}
-	
-	/**
-	 * Creates logger with followed options
-	 *
-	 * @namespace
-	 * @property {object} options - options for logger
-	 * @property {string | function | object} options.level - console[level]
-	 * @property {boolean} options.duration - print duration of each action?
-	 * @property {boolean} options.timestamp - print timestamp with each action?
-	 * @property {object} options.colors - custom colors
-	 * @property {object} options.logger - implementation of the `console` API
-	 * @property {boolean} options.logErrors - should errors in action execution be caught, logged, and re-thrown?
-	 * @property {boolean} options.collapsed - is group collapsed?
-	 * @property {boolean} options.predicate - condition which resolves logger behavior
-	 * @property {function} options.stateTransformer - transform state before print
-	 * @property {function} options.actionTransformer - transform action before print
-	 * @property {function} options.errorTransformer - transform error before print
-	 */
-	
-	function createLogger() {
-	  var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-	  var _options$level = options.level;
-	  var level = _options$level === undefined ? "log" : _options$level;
-	  var _options$logger = options.logger;
-	  var logger = _options$logger === undefined ? console : _options$logger;
-	  var _options$logErrors = options.logErrors;
-	  var logErrors = _options$logErrors === undefined ? true : _options$logErrors;
-	  var collapsed = options.collapsed;
-	  var predicate = options.predicate;
-	  var _options$duration = options.duration;
-	  var duration = _options$duration === undefined ? false : _options$duration;
-	  var _options$timestamp = options.timestamp;
-	  var timestamp = _options$timestamp === undefined ? true : _options$timestamp;
-	  var transformer = options.transformer;
-	  var _options$stateTransfo = options.stateTransformer;
-	  var // deprecated
-	  stateTransformer = _options$stateTransfo === undefined ? function (state) {
-	    return state;
-	  } : _options$stateTransfo;
-	  var _options$actionTransf = options.actionTransformer;
-	  var actionTransformer = _options$actionTransf === undefined ? function (actn) {
-	    return actn;
-	  } : _options$actionTransf;
-	  var _options$errorTransfo = options.errorTransformer;
-	  var errorTransformer = _options$errorTransfo === undefined ? function (error) {
-	    return error;
-	  } : _options$errorTransfo;
-	  var _options$colors = options.colors;
-	  var colors = _options$colors === undefined ? {
-	    title: function title() {
-	      return "#000000";
-	    },
-	    prevState: function prevState() {
-	      return "#9E9E9E";
-	    },
-	    action: function action() {
-	      return "#03A9F4";
-	    },
-	    nextState: function nextState() {
-	      return "#4CAF50";
-	    },
-	    error: function error() {
-	      return "#F20404";
-	    }
-	  } : _options$colors;
-	
-	  // exit if console undefined
-	
-	  if (typeof logger === "undefined") {
-	    return function () {
-	      return function (next) {
-	        return function (action) {
-	          return next(action);
-	        };
-	      };
-	    };
-	  }
-	
-	  if (transformer) {
-	    console.error("Option 'transformer' is deprecated, use stateTransformer instead");
-	  }
-	
-	  var logBuffer = [];
-	  function printBuffer() {
-	    logBuffer.forEach(function (logEntry, key) {
-	      var started = logEntry.started;
-	      var startedTime = logEntry.startedTime;
-	      var action = logEntry.action;
-	      var prevState = logEntry.prevState;
-	      var error = logEntry.error;
-	      var took = logEntry.took;
-	      var nextState = logEntry.nextState;
-	
-	      var nextEntry = logBuffer[key + 1];
-	      if (nextEntry) {
-	        nextState = nextEntry.prevState;
-	        took = nextEntry.started - started;
-	      }
-	      // message
-	      var formattedAction = actionTransformer(action);
-	      var isCollapsed = typeof collapsed === "function" ? collapsed(function () {
-	        return nextState;
-	      }, action) : collapsed;
-	
-	      var formattedTime = formatTime(startedTime);
-	      var titleCSS = colors.title ? "color: " + colors.title(formattedAction) + ";" : null;
-	      var title = "action " + (timestamp ? formattedTime : "") + " " + formattedAction.type + " " + (duration ? "(in " + took.toFixed(2) + " ms)" : "");
-	
-	      // render
-	      try {
-	        if (isCollapsed) {
-	          if (colors.title) logger.groupCollapsed("%c " + title, titleCSS);else logger.groupCollapsed(title);
-	        } else {
-	          if (colors.title) logger.group("%c " + title, titleCSS);else logger.group(title);
-	        }
-	      } catch (e) {
-	        logger.log(title);
-	      }
-	
-	      var prevStateLevel = getLogLevel(level, formattedAction, [prevState], "prevState");
-	      var actionLevel = getLogLevel(level, formattedAction, [formattedAction], "action");
-	      var errorLevel = getLogLevel(level, formattedAction, [error, prevState], "error");
-	      var nextStateLevel = getLogLevel(level, formattedAction, [nextState], "nextState");
-	
-	      if (prevStateLevel) {
-	        if (colors.prevState) logger[prevStateLevel]("%c prev state", "color: " + colors.prevState(prevState) + "; font-weight: bold", prevState);else logger[prevStateLevel]("prev state", prevState);
-	      }
-	
-	      if (actionLevel) {
-	        if (colors.action) logger[actionLevel]("%c action", "color: " + colors.action(formattedAction) + "; font-weight: bold", formattedAction);else logger[actionLevel]("action", formattedAction);
-	      }
-	
-	      if (error && errorLevel) {
-	        if (colors.error) logger[errorLevel]("%c error", "color: " + colors.error(error, prevState) + "; font-weight: bold", error);else logger[errorLevel]("error", error);
-	      }
-	
-	      if (nextStateLevel) {
-	        if (colors.nextState) logger[nextStateLevel]("%c next state", "color: " + colors.nextState(nextState) + "; font-weight: bold", nextState);else logger[nextStateLevel]("next state", nextState);
-	      }
-	
-	      try {
-	        logger.groupEnd();
-	      } catch (e) {
-	        logger.log("—— log end ——");
-	      }
-	    });
-	    logBuffer.length = 0;
-	  }
-	
-	  return function (_ref) {
-	    var getState = _ref.getState;
-	    return function (next) {
-	      return function (action) {
-	        // exit early if predicate function returns false
-	        if (typeof predicate === "function" && !predicate(getState, action)) {
-	          return next(action);
-	        }
-	
-	        var logEntry = {};
-	        logBuffer.push(logEntry);
-	
-	        logEntry.started = timer.now();
-	        logEntry.startedTime = new Date();
-	        logEntry.prevState = stateTransformer(getState());
-	        logEntry.action = action;
-	
-	        var returnedValue = undefined;
-	        if (logErrors) {
-	          try {
-	            returnedValue = next(action);
-	          } catch (e) {
-	            logEntry.error = errorTransformer(e);
-	          }
-	        } else {
-	          returnedValue = next(action);
-	        }
-	
-	        logEntry.took = timer.now() - logEntry.started;
-	        logEntry.nextState = stateTransformer(getState());
-	
-	        printBuffer();
-	
-	        if (logEntry.error) throw logEntry.error;
-	        return returnedValue;
-	      };
-	    };
-	  };
-	}
-	
-	module.exports = createLogger;
 
 /***/ }
 /******/ ]);

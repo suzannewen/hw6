@@ -1,5 +1,8 @@
 const User = require('../model').User
 const Profile = require('../model').Profile
+const { uploadImage } = require('../uploadCloudinary')
+
+console.log(uploadImage)
 
 const getHeadlines = (req, res) => {
   let users = []
@@ -94,6 +97,7 @@ const getAvatars = (req, res) => {
 }
 
 const uploadAvatar = (req, res) => {
+    console.log(req)
    res.send({ username: req.username, avatar: 'http://img.wennermedia.com/article-leads-vertical-300/1250529817_barack_obama_290x402.jpg' })
 }
 
@@ -106,5 +110,5 @@ module.exports = (app) => {
     app.get('/zipcode/:user?', getZipcode)
     app.put('/zipcode', updateZipcode)
     app.get('/avatars/:user?', getAvatars)
-    app.put('/avatar', uploadAvatar)
+    app.put('/avatar', uploadImage('avatar'), uploadAvatar)
 }

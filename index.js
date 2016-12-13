@@ -23,6 +23,8 @@ app.use(bodyParser.json())
 app.use(cookieParser())
 app.use(cors)
 
+// require('./uploadCloudinary.js').setup(app)
+
 require('./src/auth')(app)
 require('./src/profile')(app)
 require('./src/articles')(app)

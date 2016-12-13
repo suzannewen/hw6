@@ -43,7 +43,6 @@ const getAvatar = () => (dispatch) => {
 
 //top 10 posts
 const getArticles = ( username ) => (dispatch) => {
-  
       return resource('GET', 'articles') //needs to add showComments boolean to each object
       .then ( r5 => {
         dispatch( { type: 'ARTICLES', articles: r5.articles } )
