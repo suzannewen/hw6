@@ -21,13 +21,26 @@ const postArticle = (req, res) => {
 }
 
 const getArticles = (req, res) => {
-    //if no specific id, get all of the articles
+    //if no specific id, get top 10 articles for the logged in user's feed
     if (!req.params.id) {
-      Article
-        .find( { } )
-        .exec( (err, allArticles) => {
-            return res.send({ articles: allArticles })
-        })
+
+    const userObj = [ req.username ]
+    let usersToQuery = []
+    Profile //find friends of logged in user
+      .findOne( { username: req.username } )
+      .exec( (err, foundUser) => { 
+        usersToQuery = userObj.concat(foundUser.following)
+        console.log(usersToQuery)
+
+        Article
+          .find( { author: { $in: usersToQuery } } )
+          .sort({'date': -1})
+          .limit(10)
+          .exec( (err, allArticles) => {
+              return res.send({ articles: allArticles })
+          })
+
+      })
     }
 
     //gets all articles of a username, username inputted as id param
@@ -71,7 +84,7 @@ const updateArticle = (req, res) => {
           Article
            .findOneAndUpdate( { _id: req.params.id }, { comments: comments } )
            .exec ((err, updatedArticle) => {
-             Article
+             Article //FIX THIS, WILL RETURN ALL OF THE ARTICLES
               .find( {} )
               .exec ((err, allArticles) => {
                 return res.send( { articles: allArticles })

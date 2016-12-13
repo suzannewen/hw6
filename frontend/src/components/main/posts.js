@@ -5,7 +5,7 @@ import Comment from './comments'
 
 
 // one post div generated for each article
-export const Posts = ({ text, id, comments, editPost, friends, showComments, editComment, addComment }) => {
+export const Posts = ({ text, id, comments, editPost, friends, showComments, editComment, addComment, author }) => {
 
   let content
   let commentText
@@ -20,7 +20,7 @@ export const Posts = ({ text, id, comments, editPost, friends, showComments, edi
 
   return (
   <div>
-    <div className="small-9 columns"><div contentEditable="true" id="postText" ref={ (node) => content = node }>{ text }</div>
+    <div className="small-9 columns">{ author } said: <div contentEditable="true" id="postText" ref={ (node) => content = node }>{ text }</div>
       <div>
         <input type="button" value="Edit" id="left" onClick={ () => {_editPost(id)} }/> 
         <input type="button" value="Show Comments" id="middle" />
@@ -31,8 +31,8 @@ export const Posts = ({ text, id, comments, editPost, friends, showComments, edi
       </div>
     </div>
     <div className="comments">
-        {comments.map( ({ _id, text }) => (
-            <Comment key={ _id } text={ text } commentId={ _id } postId={ id } />
+        {comments.map( ({ _id, text, author }) => (
+            <Comment author={ author } key={ _id } text={ text } commentId={ _id } postId={ id } />
         ) )}
     </div>
   </div>

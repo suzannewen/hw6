@@ -13,7 +13,7 @@ const login = ( username, password ) =>  (dispatch) =>
   resource('POST', 'login', { username: username, password: password })
     .then(r => {
       dispatch({ type: 'NAVIGATION',  location: 'MAIN_PAGE' })
-      fetchData( dispatch )
+      fetchData( username, dispatch )
       })
     .catch( () => {alert ("Your username or password is incorrect.")}  )     
 

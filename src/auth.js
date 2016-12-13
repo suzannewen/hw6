@@ -1,32 +1,39 @@
+const redis = require('redis').createClient('redis://h:p22it5ennqcj5912vjo7tnq9k11@ec2-54-221-238-190.compute-1.amazonaws.com:10729')
 const md5 = require('md5')
-// const _ = require('lodash')
 const User = require('../model').User
 const Profile = require('../model').Profile
 
+//replace with redis
 const sessionUser = {}
 const cookieKey = 'sid'
 
 const isLoggedIn = (req, res, next) => {
   const sessionKey = req.cookies[cookieKey]
+  let username = ''
+
   if (!sessionKey) {
     return res.status(404).send( 'Unauthorized' )
   }
 
-  const username = sessionUser[sessionKey].username
-  if (username) {
-    req.username = username
-    next()
-  }
-  else {
-    return res.status(404).send( 'Unauthorized' )
-  }
+  // const username = sessionUser[sessionKey].username //gets username from userObj
+  redis.hgetall(sessionKey, function(err, userObj) {
+    username = userObj.username
+
+    if (username) {
+      req.username = username
+      next()
+    }
+    else {
+      return res.status(404).send( 'Unauthorized' )
+    }
+  })
 }
 
 const login = (req, res) => {
   const mySecretMessage = "secretterces"
   const username = req.body.username
   const password = req.body.password
-  let userObj = {}
+  // let userObj = {}
 
   User
     .findOne( { username: username } )
@@ -40,8 +47,7 @@ const login = (req, res) => {
       const checkPW = md5(password + foundUser.salt)
       if (foundUser.hash === checkPW) {
         const sessionKey = md5(mySecretMessage + new Date().getTime() + foundUser.username)
-        sessionUser[sessionKey] = foundUser
-        
+        redis.hmset(sessionKey, foundUser, function (err, res) {})
         res.cookie(cookieKey, sessionKey, { maxAge: 3600*1000, httpOnly: true})
         return res.status(200).send( { username: username, result: 'success' } )
       }
@@ -52,7 +58,9 @@ const login = (req, res) => {
 }
 
 const logout = (req, res) => {
-  delete sessionUser[req.cookies[cookieKey]]
+  // delete sessionUser[req.cookies[cookieKey]] //deletes mapping
+  redis.del(req.cookies[cookieKey])
+
   return res.status(200).send('OK')
 }
 
@@ -78,7 +86,16 @@ const register = (req, res) => {
 
     const mySecretMessage = "secretterces"
     const sessionKey = md5(mySecretMessage + new Date().getTime() + username)
-    sessionUser[sessionKey] = newUser
+    // sessionUser[sessionKey] = newUser
+
+    console.log("sessionKey" + sessionKey)
+    console.log("new user" + newUser)
+
+    redis.hmset(sessionKey, newUser, function (err, res) {})
+    redis.hgetall(sessionKey, function(err, userObj) {
+      console.log("mapped register")
+      console.log(userObj)
+    })
 
     const newProfile = new Profile({ 
       username: username,

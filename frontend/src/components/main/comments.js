@@ -12,7 +12,7 @@ export const Comment = ({ text, commentId, postId, editComment, author }) => {
 
   return (
   <div>
-    <div className="small-9 columns" id="comment"><div contentEditable="true" id="postText" ref={ (node) => content = node }>{ text }</div>
+    <div className="small-9 columns" id="comment">{ author } commented: <div contentEditable="true" id="postText" ref={ (node) => content = node }>{ text }</div>
       <div>
         <input type="button" value="Edit" id="leftComment" onClick={ () => { _editComment(postId, commentId) } }/> 
       </div>

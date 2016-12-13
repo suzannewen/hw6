@@ -1,5 +1,6 @@
 import fetch from 'isomorphic-fetch'
-const url = 'https://suzannewen-ricebook.herokuapp.com'
+const url = 'http://localhost:3000'
+// const url = 'https://suzannewen-ricebook.herokuapp.com'
 
 //wraps fetch in wrapper method
 const resource = (method, endpoint, payload) => {

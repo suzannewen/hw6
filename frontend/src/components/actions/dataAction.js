@@ -2,11 +2,11 @@ import { resource } from './resource'
 import { connect } from 'react-redux';
 
 //separate function called for each chunk of data needed 
-function fetchData( dispatch ) {
+function fetchData( username, dispatch ) {
       getHeadline(dispatch)
       .then ( getFriends(dispatch) )
       .then ( getAvatar()(dispatch) )
-      .then ( getArticles()(dispatch) )
+      .then ( getArticles( username )(dispatch) )
       .then ( getProfile()(dispatch) )
 } 
 
@@ -41,7 +41,9 @@ const getAvatar = () => (dispatch) => {
       })
 }
 
-const getArticles = () => (dispatch) => {
+//top 10 posts
+const getArticles = ( username ) => (dispatch) => {
+  
       return resource('GET', 'articles') //needs to add showComments boolean to each object
       .then ( r5 => {
         dispatch( { type: 'ARTICLES', articles: r5.articles } )
