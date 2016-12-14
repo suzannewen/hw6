@@ -16,8 +16,8 @@ let showComments = true
     <NewPost />
     <div className="cards">
       <div className="row">
-          {articles.map(({ _id, text, comments, author }) => (
-            <Posts author={ author } key={ _id } text={ text } id={ _id } showComments={ showComments } comments={ comments } />
+          {articles.map(({ _id, text, comments, author, img }) => (
+            <Posts postImg={ img } author={ author } key={ _id } text={ text } id={ _id } showComments={ showComments } comments={ comments } />
           ))}
       </div>
     </div>

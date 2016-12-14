@@ -5,6 +5,7 @@ const { uploadImage } = require('../uploadCloudinary')
 console.log(uploadImage)
 
 const getHeadlines = (req, res) => {
+  console.log("HEADLINES")
   let users = []
   if (!req.params.users) {
     users.push(req.username)
@@ -97,8 +98,11 @@ const getAvatars = (req, res) => {
 }
 
 const uploadAvatar = (req, res) => {
-    console.log(req)
-   res.send({ username: req.username, avatar: 'http://img.wennermedia.com/article-leads-vertical-300/1250529817_barack_obama_290x402.jpg' })
+    Profile
+    .findOneAndUpdate( { username: req.username }, { picture: req.fileurl } )
+    .exec( (err, foundUser) => {
+        res.send( { username: req.username, avatar: req.fileurl } )
+    })
 }
 
 module.exports = (app) => {

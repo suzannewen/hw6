@@ -15,6 +15,10 @@ const isLoggedIn = (req, res, next) => {
     return res.status(404).send( 'Unauthorized' )
   }
 
+  if(req.isAuthenticated()) {
+    next()
+  }
+
   // const username = sessionUser[sessionKey].username //gets username from userObj
   redis.hgetall(sessionKey, function(err, userObj) {
     username = userObj.username

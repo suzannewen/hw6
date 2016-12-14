@@ -1,16 +1,19 @@
 import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
 import { resource } from '../actions/resource'
-
 import { login } from '../actions/loginAction'
 
-export const Login = ({ authLogin }) => {
+export const Login = ({ authLogin, fbAuthLogin }) => {
   let username, password
 
   const _authLogin = () => {
     if (username && username.value && password && password.value) {
       authLogin (username.value, password.value)
     }
+  }
+
+  const fbAuth = () => {
+    window.location = 'http://localhost:3000/auth/login'
   }
 
   return (
@@ -24,6 +27,7 @@ export const Login = ({ authLogin }) => {
           <input type="button" value="Clear" />
         </div>
       </div>
+      <img src='http://return.me/images/fbicon.png' onClick={ fbAuth }/>
     </div>
 )}
 

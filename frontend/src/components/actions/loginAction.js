@@ -17,6 +17,12 @@ const login = ( username, password ) =>  (dispatch) =>
       })
     .catch( () => {alert ("Your username or password is incorrect.")}  )     
 
+const initialVisit = ( ) =>  (dispatch) => {
+  console.log('initial visit')
+  resource('GET', 'headlines')
+    .then(r => { console.log(r) })
+}
+
 const logout = ( ) =>  (dispatch) => 
   resource('PUT', 'logout')
     .then( 
@@ -24,4 +30,4 @@ const logout = ( ) =>  (dispatch) =>
     )
     .catch() 
 
-export { register, login, logout }
+export { register, login, logout, initialVisit }

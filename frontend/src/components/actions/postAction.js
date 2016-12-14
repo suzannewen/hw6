@@ -1,9 +1,14 @@
-import { resource } from './resource'
+import { resource, resourceImg } from './resource'
 import { getArticles } from '../actions/dataAction'
 
 const newPost = ( message ) => (dispatch) =>
   resource('POST', 'article', { text: message })
-  .then ( getArticles()(dispatch) )
+  .then( r=> console.log(r) )
+  // .then ( getArticles()(dispatch) )
+
+const newPostImg = ( fd ) => (dispatch) =>
+  resourceImg('POST', 'article', fd)
+  .then( r=> console.log(r) )
 
 const editPost = ( message, id ) => (dispatch) => {
   resource('PUT', 'articles/' + id, { text: message })
@@ -24,4 +29,4 @@ const editComment = ( message, postId, commentId ) => (dispatch) => {
   })
 }
 
-export { newPost, editPost, addComment, editComment }
+export { newPost, newPostImg, editPost, addComment, editComment }

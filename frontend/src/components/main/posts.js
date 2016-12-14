@@ -5,7 +5,7 @@ import Comment from './comments'
 
 
 // one post div generated for each article
-export const Posts = ({ text, id, comments, editPost, friends, showComments, editComment, addComment, author }) => {
+export const Posts = ({ text, id, comments, editPost, friends, showComments, editComment, addComment, author, postImg }) => {
 
   let content
   let commentText
@@ -18,6 +18,7 @@ export const Posts = ({ text, id, comments, editPost, friends, showComments, edi
     addComment(commentText.value, id)
   }
 
+if (postImg.length === 0) {
   return (
   <div>
     <div className="small-9 columns">{ author } said: <div contentEditable="true" id="postText" ref={ (node) => content = node }>{ text }</div>
@@ -37,6 +38,30 @@ export const Posts = ({ text, id, comments, editPost, friends, showComments, edi
     </div>
   </div>
   )
+}
+else {
+  return (
+    <div>
+    <div className="small-9 columns">{ author } said: <div contentEditable="true" id="postText" ref={ (node) => content = node }>{ text }</div>
+      <img className="thumbnail" src={postImg}/>
+      <div>
+        <input type="button" value="Edit" id="left" onClick={ () => {_editPost(id)} }/> 
+        <input type="button" value="Show Comments" id="middle" />
+        <input type="button" value="Submit Comment" id="right" onClick = { () => {_addComment(id)} }/>
+      </div>
+      <div>
+        <input type="text" placeholder="Leave a comment here" ref={ (node) => commentText = node }/>
+      </div>
+    </div>
+    <div className="comments">
+        {comments.map( ({ _id, text, author }) => (
+            <Comment author={ author } key={ _id } text={ text } commentId={ _id } postId={ id } />
+        ) )}
+    </div>
+  </div>
+  )
+}
+
 }
 
 export default connect(

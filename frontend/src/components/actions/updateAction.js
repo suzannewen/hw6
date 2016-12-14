@@ -1,19 +1,11 @@
-import { resource } from './resource'
+import { resource, resourceImg } from './resource'
 import { fetchData } from '../actions/dataAction'
 
 const updateAvatar = (fd) => (dispatch) => {
-  console.log(fd)
-  const options =  {
-    method: 'PUT',
-    credentials: 'include',
-    body: fd }
-
-  fetch(`http://localhost:3000/avatar`, options)
-  .then (res => console.log(res))
-  // resource('PUT', 'avatar', fd)
-  // .then( r => {
-  //     dispatch({ type: 'AVATAR', avatar: r.url})
-  // })   
+  resourceImg('PUT', 'avatar', fd)
+  .then( r => {
+      dispatch({ type: 'AVATAR', avatar: r.avatar})
+  })   
 }
 
 const updateZipcode = ( zipcode ) => (dispatch) =>

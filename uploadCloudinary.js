@@ -10,7 +10,9 @@ if (!process.env.CLOUDINARY_URL) {
 }
 
 const doUpload = (publicName, req, res, next) => {
-  console.log(req)
+  if(typeof req.file === 'undefined') {
+    next()
+  }
   const uploadStream = cloudinary.uploader.upload_stream(result => {      
          // capture the url and public_id and add to the request
          req.fileurl = result.url

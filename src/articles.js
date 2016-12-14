@@ -1,11 +1,17 @@
 const Article = require('../model').Article
 const Profile = require('../model').Profile
 const Comment = require('../model').Comment
+const { uploadImage } = require('../uploadCloudinary')
  
 const postArticle = (req, res) => {
+  const imgUrl = ''
+  if(typeof req.fileurl != 'undefined') {
+    imgUrl = req.fileurl
+  }
+
   const newArticle = new Article({ 
       author: req.username,
-      img: '',
+      img: imgUrl,
       date: new Date(),
       text: req.body.text,
       comments: [ ]
@@ -122,7 +128,7 @@ const updateArticle = (req, res) => {
 }
 
 module.exports = (app) => {
-  app.post('/article', postArticle)
+  app.post('/article', uploadImage('text'), postArticle)
   app.get('/articles/:id*?', getArticles)
   app.put('/articles/:id', updateArticle)
 }
